@@ -1,0 +1,4 @@
+#Wed Mar 18 23:16:10 CST 2009
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.exe.debug.1073929682=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<environment append\="true" appendContributed\="true">\n<variable delimiter\=";" name\="LD_LIBRARY_PATH" operation\="append" value\="/usr/local/lib"/>\n</environment>\n
+environment/project/cdt.managedbuild.config.gnu.exe.release.879603447=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<environment append\="true" appendContributed\="true">\n<variable delimiter\=";" name\="LD_LIBRARY_PATH" operation\="append" value\="/usr/local/lib"/>\n</environment>\n
