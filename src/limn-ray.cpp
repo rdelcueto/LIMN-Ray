@@ -19,6 +19,9 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define TILE_SIZE 32
+#define TILE_RES (TILE_SIZE*TILE_SIZE)
+
 #include <iostream>
 #include <fstream>
 #include <pngwriter.h>
@@ -34,7 +37,7 @@ double diffclock(clock_t clock1, clock_t clock2) {
 }
 
 int outputImage(double* image, int image_w, int image_h) {
-  int res = image_w * image_h;
+  //int res = image_w * image_h;
   pngwriter image_out(image_w, image_h, 0, "out.png");
   register int k = 0;
   for(register int y = 1; y <= image_h; y++)
@@ -58,8 +61,17 @@ void printSceneDesc(Scene *s) {
     << "\n\tSamples: " << s->samples << "\n\n";
 }
 
-void raytrace(Scene *s, Ray **rays, int res) {
-  for(register int i = 0; i < res; i++) {
+static void raytrace(Scene *s, Ray **rays, int res) {
+  for(int i = 0; i < res; i++) {
+    s->intersect(rays[i]);
+    if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
+      if(s->shader(rays[i]) != 1)
+        rays[i]->t_intersect = std::numeric_limits<float>::infinity();
+  }
+}
+
+static void raytraceTile(Scene *s, Ray **rays) {
+  for(int i = 0; i < TILE_RES; i++) {
     s->intersect(rays[i]);
     if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
       if(s->shader(rays[i]) != 1)
@@ -80,20 +92,69 @@ static void render(Scene *s, double *image) {
   double xDelta = -0.5;
   double yDelta = -aspect/2.0;
 
-  Ray **rays = new Ray *[res];
-  register int k = 0;
-  for(int i = 0; i < rows; i++) {
-    pixel = i*cols*3;
-    for(int j = 0; j < cols; j++) {
-      rays[k] = new Ray(
-          image+pixel+(j*3), s->focalPointPos, xDelta, yDelta, 0);
-      k++;
-      xDelta += delta;
+  // Tiled Render
+  if(TILE_SIZE > 1) {
+
+    double tileXDelta;
+
+    int k = 0;
+    int xTiles = cols/TILE_SIZE;
+    int yTiles = rows/TILE_SIZE;
+    int xPos;
+    int yPos;
+
+    for(int ty = 0; ty < yTiles; ty++) {
+      for(int tx = 0; tx < xTiles; tx++) {
+        // Render Tile
+        Ray **rays = new Ray *[TILE_RES];
+        xPos = tx*TILE_SIZE;
+        yPos = ty*TILE_SIZE;
+        tileXDelta = -0.5 + delta*xPos;
+        yDelta = -aspect/2.0 + delta*yPos;
+        k = 0;
+        for(int y = 0; y < TILE_SIZE; y++) {
+          pixel = (yPos + y)*cols*3;
+          xDelta = tileXDelta;
+          for(int x = 0; x < TILE_SIZE; x++) {
+            rays[k] = new Ray(
+                          image+pixel+((xPos + x)*3),
+                          s->focalPointPos,
+                          xDelta,
+                          yDelta,
+                          0);
+            k++;
+            xDelta += delta;
+          }
+          yDelta += delta;
+        }
+        raytraceTile(s, rays);
+        delete [] rays;
+      }
     }
-    xDelta = -0.5;
-    yDelta += delta;
   }
-  raytrace(s, rays, res);
+
+  // Untiled Render
+  else {
+    Ray **rays = new Ray *[res];
+      register int k = 0;
+      for(int i = 0; i < rows; i++) {
+        pixel = i*cols*3;
+        for(int j = 0; j < cols; j++) {
+          rays[k] = new Ray(
+              image+pixel+(j*3), s->focalPointPos, xDelta, yDelta, 0);
+          k++;
+          xDelta += delta;
+        }
+        xDelta = -0.5;
+        yDelta += delta;
+      }
+      raytrace(s, rays, res);
+      delete [] rays;
+  }
+
+  // Untiled Pixels
+  //xTiles = rows % xTiles == 0 ? xTiles : xTiles + 1;
+  //yTiles = rows % yTiles == 0 ? yTiles : yTiles + 1;
 }
 
 int main(int argc, char* argv[]) {
