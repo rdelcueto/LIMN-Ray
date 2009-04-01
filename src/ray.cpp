@@ -28,41 +28,36 @@ Ray::Ray() {
   p_intersect = NULL;
 }
 
-Ray::Ray(double posx, double posy, double posz,
-        double dirx, double diry, double dirz) {
-    pos[0] = posx; pos[1] = posy; pos[2] = posz;
-    dir[0] = dirx; dir[1] = diry; dir[2] = dirz;
-    blasFast3DNormalize(dir);
-    t_intersect = std::numeric_limits<double>::infinity();
-    p_intersect = NULL;
-}
-
-Ray::Ray(double dirx, double diry, double dirz) {
-  pos[0] = pos[1] = pos[2] = 0.0;
-  dir[0] = dirx; dir[1] = diry; dir[2] = dirz;
-  blasFast3DNormalize(dir);
+Ray::Ray(double *pixel_in, double *pos_in,
+  double xDelta, double yDelta, double zDelta) {
+  pixel = pixel_in;
+  pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
+  setLookAt(xDelta, yDelta, zDelta);
   t_intersect = std::numeric_limits<double>::infinity();
   p_intersect = NULL;
 }
 
-void Ray::setPos(double posx, double posy, double posz) {
-  pos[0] = posx; pos[1] = posy; pos[2] = posz;
+Ray::Ray(double *pixel_in, double *pos_in, double *dir_in) {
+  pixel = pixel_in;
+  pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
+  dir[0] = dir_in[0]; dir[1] = dir_in[1]; dir[2] = dir_in[2];
+  t_intersect = std::numeric_limits<double>::infinity();
+  p_intersect = NULL;
 }
 
-void Ray::setDir(double dirx, double diry, double dirz) {
-  dir[0] = dirx; dir[1] = diry; dir[2] = dirz;
-  blasFast3DNormalize(dir);
+void Ray::setPos(double *pos_in) {
+  pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
+}
+
+void Ray::setDir(double *dir_in) {
+  dir[0] = dir_in[0]; dir[1] = dir_in[1]; dir[2] = dir_in[2];
+  //blasFast3DNormalize(dir);
 }
 
 void Ray::setLookAt(double lookAtx, double lookAty, double lookAtz) {
   dir[0] = lookAtx; dir[1] = lookAty; dir[2] = lookAtz;
   blas3dSubstractXY(dir, pos, dir);
   blasFast3DNormalize(dir);
-}
-
-void Ray::setIntersection(double t, Primitive *p) {
-  t_intersect = t;
-  p_intersect = p;
 }
 
 void Ray::getPosAtT(double t, double *p) {

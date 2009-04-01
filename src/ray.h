@@ -29,22 +29,22 @@ class Primitive;
 class Ray
 {
 public:
+  double *pixel;
   double pos[3];
   double dir[3];
+  double int_p[3];
+  double int_n[3];
   double t_intersect;
   Primitive *p_intersect;
 
   Ray();
+  Ray(double *pixel_in, double *pos_in,
+      double xDelta, double yDelta, double zDelta);
+  Ray(double *pixel_in, double *pos_in, double *dir_in);
 
-  Ray(double posx, double posy, double posz,
-        double dirx, double diry, double dirz);
-
-  Ray(double dirx, double diry, double dirz);
-
-  void setPos(double posx, double posy, double posz);
-  void setDir(double dirx, double diry, double dirz);
+  void setPos(double *pos);
+  void setDir(double *dir);
   void setLookAt(double lookAtx, double lookAty, double lookAtz);
-  void setIntersection(double t, Primitive *p);
   void getPosAtT(double t, double *p);
   void getPosAtInt(double *p);
 };

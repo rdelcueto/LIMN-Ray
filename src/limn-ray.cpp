@@ -36,12 +36,13 @@ double diffclock(clock_t clock1, clock_t clock2) {
 int outputImage(double* image, int image_w, int image_h) {
   int res = image_w * image_h;
   pngwriter image_out(image_w, image_h, 0, "out.png");
-  register int i = 0;
-  register int j = 1;
-  while(j <= res) {
-    image_out.plot(j%image_w, j/image_w, image[i++], image[i++], image[i++]);
-    j++;
-  }
+  register int k = 0;
+  for(register int y = 1; y <= image_h; y++)
+    for(register int x = 1; x <= image_w; x++) {
+      image_out.plot(x, y, image[k], image[k+1], image[k+2]);
+      k+=3;
+    }
+
   image_out.close();
   return 0;
 }
@@ -57,6 +58,14 @@ void printSceneDesc(Scene *s) {
     << "\n\tSamples: " << s->samples << "\n\n";
 }
 
+void raytrace(Scene *s, Ray **rays, int res) {
+  for(register int i = 0; i < res; i++) {
+    s->intersect(rays[i]);
+    if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
+      s->shader(rays[i]);
+  }
+}
+
 static void render(Scene *s, double *image) {
 
   int cols = s->plane_w;
@@ -67,36 +76,28 @@ static void render(Scene *s, double *image) {
 
   double aspect = (rows*1.0) / cols;
   double delta = 1.0/cols;
-  register double xDelta = -0.5;
-  register double yDelta = aspect/2.0;
+  double xDelta = -0.5;
+  double yDelta = -aspect/2.0;
 
-  Ray *primaryRay = new Ray();
-  double primaryRayPos[3];
-  primaryRay->setPos(s->focalPointPos[0],
-                     s->focalPointPos[1],
-                     s->focalPointPos[2]);
-  //for(register int k = 0; k < 100; k++)
-  for(register int i = 0; i < rows; i++) {
+  Ray **rays = new Ray *[res];
+  register int k = 0;
+  for(int i = 0; i < rows; i++) {
     pixel = i*cols*3;
-    for(register int j = 0; j < cols; j++) {
-      primaryRay->setLookAt(xDelta, yDelta, 0);
-      primaryRay->setIntersection(std::numeric_limits<float>::infinity(), NULL);
-
-      s->intersect(primaryRay);
-      if(std::numeric_limits<float>::infinity() != primaryRay->t_intersect) {
-        s->shader(primaryRay, image+pixel+(j*3));
-
-      }
+    for(int j = 0; j < cols; j++) {
+      rays[k] = new Ray(
+          image+pixel+(j*3), s->focalPointPos, xDelta, yDelta, 0);
+      k++;
       xDelta += delta;
     }
     xDelta = -0.5;
-    yDelta -= delta;
+    yDelta += delta;
   }
+  raytrace(s, rays, res);
 }
 
 int main(int argc, char* argv[]) {
 
-  std::cout << "Limn-Ray v0.1" << std::endl;
+  std::cout << "Limn-Ray v0.2" << std::endl;
 
   // Parse Scene
   Scene *s = new Scene();
@@ -117,11 +118,10 @@ int main(int argc, char* argv[]) {
   render(s, image);
   clock_t end = clock();
   std::cout << "Done!\nRender Time: ~" << diffclock(end, begin) << "s.\n";
-  // Output Render
 
+  // Output Render
   outputImage(image, s->plane_w, s->plane_h);
   delete [] image;
   image = NULL;
-  //testBlas();
   return 0;
 }

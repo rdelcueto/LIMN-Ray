@@ -46,6 +46,16 @@ public:
     interior = 0;
   }
 
+  Material(double red, double green, double blue, double opacy) {
+    color[0] = red; color[1] = green; color[2] = blue; color[3] = opacy;
+    ambient = 0;
+    diffuse = 0.9;
+    specular = 1.0;
+    specular_Hardness = 16 * 4;
+    reflection = 0;
+    interior = 0;
+  }
+
   Material(double red, double green, double blue, double opacy,
            double ambient_in, double diffuse_in,
            double specular_in, double specHardness_in,

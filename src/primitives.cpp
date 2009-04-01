@@ -23,6 +23,50 @@
 #include "primitives.h"
 #include "blas.h"
 
+class Plane : public Primitive {
+public:
+  double planeN[3];
+
+  Plane() {
+    pos[0] = 0.0; pos[1] = 0.0; pos[2] = 0.0;
+    planeN[0] = 0.0; planeN[1] = 1.0; planeN[2] = 0.0;
+    material = new Material();
+  }
+
+  Plane(double posx, double posy, double posz,
+      double normalx, double normaly, double normalz) {
+    pos[0] = posx; pos[1] = posy; pos[2] = posz;
+    planeN[0] = normalx; planeN[1] = normaly; planeN[2] = normalz;
+    blasFast3DNormalize(planeN);
+    material = new Material();
+  }
+
+  Plane(double posx, double posy, double posz,
+      double normalx, double normaly, double normalz,
+      Material *m) {
+    pos[0] = posx; pos[1] = posy; pos[2] = posz;
+    planeN[0] = normalx; planeN[1] = normaly; planeN[2] = normalz;
+    blasFast3DNormalize(planeN);
+    material = m;
+  }
+
+  void normalAtP(const double *p, double *n) {
+    n[0] = planeN[0]; n[1] = planeN[1]; n[2] = planeN[2];
+  }
+
+  double intersect(Ray *r) {
+    double nDotDir = blasFast3dDot(planeN, r->dir);
+    if (nDotDir != 0) {
+      double line[3];
+      blas3dSubstractXY(r->pos, pos, line);
+      double nDotLine = -blasFast3dDot(planeN, line);
+      if(nDotLine != 0)
+        return nDotLine/nDotDir;
+    }
+    return std::numeric_limits<double>::infinity();
+  }
+};
+
 class Sphere : public Primitive {
 public:
   double radius;
@@ -53,7 +97,7 @@ public:
     }
 
   void normalAtP(const double *p, double *n) {
-    blas3dSubstractXY(pos, p, n);
+    blas3dSubstractXY(p, pos, n);
     blasFast3DNormalize(n);
   }
 
@@ -63,12 +107,10 @@ public:
     double l2oc = blasFast3dDot(oc, oc);
     double tca = blasFast3dDot(oc, r->dir);
     double l2hc = sqrRadius - l2oc + tca*tca;
-    if(tca < 0) {
-      std::cout << tca << " ";
-      if(l2hc < 0) return std::numeric_limits<double>::infinity();
-      else return tca - sqrt(l2hc);
-    }
+    if(l2oc < sqrRadius) return tca + sqrt(l2hc);
     else
-      return tca + sqrt(l2hc);
+      if(tca < 0) return std::numeric_limits<double>::infinity();
+      else return l2hc > 0 ?
+          tca - sqrt(l2hc) : std::numeric_limits<double>::infinity();
   }
 };

@@ -45,7 +45,7 @@ public:
 
   Scene();
   void intersect(Ray *r);
-  void shader(Ray *r, double *color);
+  void shader(Ray *r);
 
 };
 
