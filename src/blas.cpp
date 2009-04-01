@@ -101,7 +101,7 @@ void blasDcopy(int n, const double *x, int incx,
 
 }
 
-double blasFast3dDot(const double *x, const double *y) {
+double blas3dDot(const double *x, const double *y) {
   return (x[0] * y[0] + x[1] * y[1] + x[2] * y[2]);
 }
 
@@ -164,8 +164,8 @@ void blasDswap(int n,
 
 }
 
-void blasFast3DNormalize(double *x) {
-  double nrm = sqrt(blasFast3dDot(x, x));
+void blas3DNormalize(double *x) {
+  double nrm = sqrt(blas3dDot(x, x));
   x[0] /= nrm; x[1] /= nrm; x[2] /= nrm;
 }
 

@@ -19,6 +19,9 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define INTERSECT_EPSILON 0.000001
+#define LIGHT_SCALE 10000
+
 #include <list>
 #include <limits.h>
 #include <math.h>
@@ -29,28 +32,28 @@
 #include "lights.cpp"
 
 Scene::Scene() {
-  plane_w = 800;
-  plane_h = 600;
+  plane_w = 640;
+  plane_h = 640;
   planePos[0] = planePos[1] = planePos[2] = 0.0;
-  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -1.0;
+  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -2.0;
   lookAt[0] = lookAt[1] = 0.0; lookAt[2] = 1.0;
   recurLimit = 8;
   samples = 1;
 
-  sceneMaterials.push_back(new Material(1, 0.9, 0.9, 1));
-  sceneMaterials.push_back(new Material(0.9, 1, 0.9, 1));
-  sceneMaterials.push_back(new Material(0.9, 0.9, 1, 1));
+  sceneMaterials.push_back(new Material(1, 0.9, 0.9, 1, 0, 1, 1, 1, 1, 0.5));
+  sceneMaterials.push_back(new Material(0.9, 1, 0.9, 1, 0, 1, 1, 1, 1, 0.5));
+  sceneMaterials.push_back(new Material(0.9, 0.9, 1, 1, 0, 1, 1, 1, 1, 0.5));
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneLights.push_back(new Omnidirectional(0, 5, 10, 1, 0, 0, 1, 4));
-  sceneLights.push_back(new Omnidirectional(-7.07, -7.07, 10, 0, 1, 0, 1, 4));
-  sceneLights.push_back(new Omnidirectional(7.07, -7.07, 10, 0, 0, 1, 1, 4));
+  sceneLights.push_back(new Omnidirectional(0, 10, 100, 1, 0, 0, 2, 1));
+  sceneLights.push_back(new Omnidirectional(-14.14, -14.14, 100, 0, 1, 0, 2, 1));
+  sceneLights.push_back(new Omnidirectional(14.14, -14.14, 100, 0, 0, 1, 2, 1));
 
-  sceneObjects.push_back(new Sphere(0, -5, 50, 5, *mi));
+  sceneObjects.push_back(new Sphere(0, -5, 120, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(-7.07, 7.07, 75, 5, *mi));
+  sceneObjects.push_back(new Sphere(-7.07, 7.07, 125, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(7.07, 7.07, 100, 5, *mi));
+  sceneObjects.push_back(new Sphere(7.07, 7.07, 130, 5, *mi));
 
   sceneObjects.push_back(new Plane(-20, 0, 0, 1, 0, 0));
   sceneObjects.push_back(new Plane(20, 0, 0, -1, 0, 0));
@@ -76,7 +79,7 @@ void Scene::intersect(Ray *r) {
   }
 }
 
-void Scene::shader(Ray *r) {
+int Scene::shader(Ray *r) {
   Light *l = NULL;
   LightList::iterator i;
 
@@ -97,8 +100,8 @@ void Scene::shader(Ray *r) {
   // View Unit Vector from Intersection Point
   double v[3];
   blas3dSubstractXY(r->pos, intPoint, v); // View = Ray Pos - Intersection
-  pDistance = sqrt(blasFast3dDot(v, v))/2;
-  blasFast3DNormalize(v);
+  pDistance = sqrt(blas3dDot(v, v));
+  blas3DNormalize(v);
   // Light Unit Vector from Intersection Point
   double lVec[3];
   // h = (lVec + View)/2
@@ -109,42 +112,54 @@ void Scene::shader(Ray *r) {
   for(i = sceneLights.begin(); i != sceneLights.end(); ++i) {
     l = *i;
 
-    // Phong
     blas3dSubstractXY(l->pos, intPoint, lVec); // Light Pos - Intersection
-    lDistance = pDistance + sqrt(blasFast3dDot(lVec, lVec))/2;
-    blasFast3DNormalize(lVec);
+    lDistance = sqrt(blas3dDot(lVec, lVec));
 
-    lightI = l->intensity/(lDistance*lDistance*.001/l->damping);
-    // Diffuse
-    phongD = blasFast3dDot(lVec, normP) * m->diffuse * lightI;
+    Ray *shadowRay = new Ray();
+    shadowRay->setPos(intPoint);
+    shadowRay->setLookAt(lVec);
+    shadowRay->move(INTERSECT_EPSILON);
+    intersect(shadowRay);
 
-    // Specular
-    blas3dAddXY(lVec, v, h); // LightPos + EyePos = Halfway = h
-    //std::cout << "HW: " << h[0] << ',' << h[1] << ',' << h[2] << std::endl;
-    //std::cout << "Norm: " << normP[0] << ',' << normP[1] << ',' << normP[2] << std::endl;
-    //blasDscal(3, 0.5, h, 1); // h = Halfway / 2
-    blasDcopy(3, normP, 1, d, 1);
-    blasDscal(3, blasFast3dDot(h,d), d, 1); // (NdotNormAtP)NormAtP
-    blas3dSubstractXY(d, h, d); //
-    phongS = (m->specular_Hardness/2)*blasFast3dDot(d, d);
-    if (phongS > 1) phongS = 0;
-    else {
-      phongS = (1-phongS)/2;
-      phongS *= phongS;
-    }
+    if(shadowRay->t_intersect > lDistance ){
+      lDistance += pDistance;
+      blas3DNormalize(lVec);
 
-    if(phongD > 0) {
-      color[0] += l->color[0] * phongD * pixelColor[0];
-      color[1] += l->color[1] * phongD * pixelColor[1];
-      color[2] += l->color[2] * phongD * pixelColor[2];
-    }
-    if(phongS > 0) {
-      color[0] += l->color[0] * phongS * pixelColor[0];
-      color[1] += l->color[1] * phongS * pixelColor[1];
-      color[2] += l->color[2] * phongS * pixelColor[2];
+      lightI = l->intensity*LIGHT_SCALE/(lDistance*lDistance*l->damping);
+      // Diffuse
+      phongD = blas3dDot(lVec, normP) * m->diffuse * lightI;
+
+      // Specular
+      blas3dAddXY(lVec, v, h); // LightPos + EyePos = Halfway = h
+      //std::cout << "HW: " << h[0] << ',' << h[1] << ',' << h[2] << std::endl;
+      //std::cout << "Norm: " << normP[0] << ',' << normP[1] << ',' << normP[2] << std::endl;
+      //blasDscal(3, 0.5, h, 1); // h = Halfway / 2
+      blasDcopy(3, normP, 1, d, 1);
+      blasDscal(3, blas3dDot(h,d), d, 1); // (NdotNormAtP)NormAtP
+      blas3dSubstractXY(d, h, d); //
+      phongS = (m->specular_Hardness/2)*blas3dDot(d, d);
+      if (phongS > 1) phongS = 0;
+      else {
+        phongS = (1-phongS)/2;
+        phongS *= phongS;
+      }
+
+      if(phongD > 0) {
+        color[0] += l->color[0] * phongD * pixelColor[0];
+        color[1] += l->color[1] * phongD * pixelColor[1];
+        color[2] += l->color[2] * phongD * pixelColor[2];
+      }
+      if(phongS > 0) {
+        color[0] += l->color[0] * phongS * pixelColor[0];
+        color[1] += l->color[1] * phongS * pixelColor[1];
+        color[2] += l->color[2] * phongS * pixelColor[2];
+      }
     }
   }
   color[0] += pixelColor[0] * m->ambient;
   color[1] += pixelColor[1] * m->ambient;
   color[2] += pixelColor[2] * m->ambient;
+
+  if(m->color[3] != 1 || m->reflection != 0) return 1;
+  else return -1;
 }

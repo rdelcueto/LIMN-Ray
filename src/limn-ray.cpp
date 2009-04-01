@@ -62,7 +62,8 @@ void raytrace(Scene *s, Ray **rays, int res) {
   for(register int i = 0; i < res; i++) {
     s->intersect(rays[i]);
     if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
-      s->shader(rays[i]);
+      if(s->shader(rays[i]) != 1)
+        rays[i]->t_intersect = std::numeric_limits<float>::infinity();
   }
 }
 

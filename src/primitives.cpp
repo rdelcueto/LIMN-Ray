@@ -37,7 +37,7 @@ public:
       double normalx, double normaly, double normalz) {
     pos[0] = posx; pos[1] = posy; pos[2] = posz;
     planeN[0] = normalx; planeN[1] = normaly; planeN[2] = normalz;
-    blasFast3DNormalize(planeN);
+    blas3DNormalize(planeN);
     material = new Material();
   }
 
@@ -46,7 +46,7 @@ public:
       Material *m) {
     pos[0] = posx; pos[1] = posy; pos[2] = posz;
     planeN[0] = normalx; planeN[1] = normaly; planeN[2] = normalz;
-    blasFast3DNormalize(planeN);
+    blas3DNormalize(planeN);
     material = m;
   }
 
@@ -55,11 +55,11 @@ public:
   }
 
   double intersect(Ray *r) {
-    double nDotDir = blasFast3dDot(planeN, r->dir);
+    double nDotDir = blas3dDot(planeN, r->dir);
     if (nDotDir != 0) {
       double line[3];
       blas3dSubstractXY(r->pos, pos, line);
-      double nDotLine = -blasFast3dDot(planeN, line);
+      double nDotLine = -blas3dDot(planeN, line);
       if(nDotLine != 0)
         return nDotLine/nDotDir;
     }
@@ -98,14 +98,14 @@ public:
 
   void normalAtP(const double *p, double *n) {
     blas3dSubstractXY(p, pos, n);
-    blasFast3DNormalize(n);
+    blas3DNormalize(n);
   }
 
   double intersect(Ray *r) {
     double oc[3];
     blas3dSubstractXY(pos, r->pos, oc);
-    double l2oc = blasFast3dDot(oc, oc);
-    double tca = blasFast3dDot(oc, r->dir);
+    double l2oc = blas3dDot(oc, oc);
+    double tca = blas3dDot(oc, r->dir);
     double l2hc = sqrRadius - l2oc + tca*tca;
     if(l2oc < sqrRadius) return tca + sqrt(l2hc);
     else

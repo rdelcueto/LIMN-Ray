@@ -93,7 +93,7 @@ void blasDcopy(int n, const double *x, int incx,
  * Computes the dot product of two double-precision 3D vectors.
  */
 
-double blasFast3dDot(const double *x, const double *y);
+double blas3dDot(const double *x, const double *y);
 
 /* blasDdot()
  * Computes the dot product of two double-precision vectors.
@@ -157,7 +157,7 @@ void blasDswap(int n,
                double *x, int incx,
                double *y, int incy);
 
-void blasFast3DNormalize(double *x);
+void blas3DNormalize(double *x);
 
 void blasNormalize(int n, double *x, int incx);
 

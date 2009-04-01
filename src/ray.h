@@ -44,9 +44,10 @@ public:
 
   void setPos(double *pos);
   void setDir(double *dir);
+  void move(double delta);
+  void setLookAt(double *lookAt);
   void setLookAt(double lookAtx, double lookAty, double lookAtz);
   void getPosAtT(double t, double *p);
-  void getPosAtInt(double *p);
 };
 
 #endif /* RAY_H_ */

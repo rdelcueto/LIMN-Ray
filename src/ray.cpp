@@ -54,18 +54,26 @@ void Ray::setDir(double *dir_in) {
   //blasFast3DNormalize(dir);
 }
 
+void Ray::move(double delta) {
+  pos[0] += dir[0]*delta;
+  pos[1] += dir[1]*delta;
+  pos[2] += dir[2]*delta;
+}
+
+void Ray::setLookAt(double *lookAt) {
+  dir[0] = lookAt[0]; dir[1] = lookAt[1]; dir[2] = lookAt[2];
+  blas3dSubstractXY(dir, pos, dir);
+  blas3DNormalize(dir);
+}
+
 void Ray::setLookAt(double lookAtx, double lookAty, double lookAtz) {
   dir[0] = lookAtx; dir[1] = lookAty; dir[2] = lookAtz;
   blas3dSubstractXY(dir, pos, dir);
-  blasFast3DNormalize(dir);
+  blas3DNormalize(dir);
 }
 
 void Ray::getPosAtT(double t, double *p) {
   blasDcopy(3, dir, 1, p, 1);
   blasDscal(3, t, p, 1);
   p[0] += pos[0]; p[1] += pos[1]; p[2] += pos[2];
-}
-
-void Ray::getPosAtInt(double *p) {
-  getPosAtT(t_intersect, p);
 }
