@@ -32,12 +32,12 @@
 #include "lights.cpp"
 
 Scene::Scene() {
-  plane_w = 2048;
-  plane_h = 2048;
+  plane_w = 1024;
+  plane_h = 768;
   planePos[0] = planePos[1] = planePos[2] = 0.0;
-  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -2.8;
+  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -1.0;
   lookAt[0] = lookAt[1] = 0.0; lookAt[2] = 1.0;
-  recurLimit = 8;
+  recurLimit = 2;
   samples = 1;
 
   sceneMaterials.push_back(new Material(1, 0.9, 0.9,  1.0, 0, 1, 1, 1, 0.0, 0.0));
@@ -49,11 +49,11 @@ Scene::Scene() {
   sceneLights.push_back(new Omnidirectional(-14.14, -14.14, 80, 0, 1, 0, 3, 1));
   sceneLights.push_back(new Omnidirectional(14.14, -14.14, 80, 0, 0, 1, 3, 1));
 
-  sceneObjects.push_back(new Sphere(0, -5, 120, 5, *mi));
+  sceneObjects.push_back(new Sphere(0, -5, 150, 10, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(-7.07, 7.07, 125, 5, *mi));
+  sceneObjects.push_back(new Sphere(-7.07, 7.07, 170, 10, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(7.07, 7.07, 130, 5, *mi));
+  sceneObjects.push_back(new Sphere(7.07, 7.07, 130, 10, *mi));
 
   sceneObjects.push_back(new Plane(-20, 0, 0, 1, 0, 0));
   sceneObjects.push_back(new Plane(20, 0, 0, -1, 0, 0));
@@ -63,20 +63,24 @@ Scene::Scene() {
 }
 
 void Scene::intersect(Ray *r) {
-  register double minT = r->t_intersect;
+  double minT = std::numeric_limits<double>::infinity();
   double currT;
   Primitive *p = NULL;
+  Primitive *pMin = NULL;
   PrimitiveList::iterator i;
   for(i = sceneObjects.begin(); i != sceneObjects.end(); ++i) {
     p = *i;
     currT = p->intersect(r);
-    if(currT < minT && currT > 0) {
+    if(currT < minT && currT > INTERSECT_EPSILON) {
       minT = currT;
-      r->t_intersect = minT;
-      r->getPosAtT(minT, r->int_p);
-      r->p_intersect = p;
-      p->normalAtP(r->int_p, r->int_n);
+      pMin = p;
     }
+  }
+  if(minT < r->t_intersect) {
+    r->t_intersect = minT;
+    r->p_intersect = pMin;
+    r->getPosAtT(r->t_intersect, r->int_p);
+    pMin->normalAtP(r->int_p, r->int_n);
   }
 }
 
@@ -120,7 +124,6 @@ int Scene::shader(Ray *r) {
     Ray *shadowRay = new Ray();
     shadowRay->setPos(intPoint);
     shadowRay->setDir(lVec);
-    shadowRay->move(INTERSECT_EPSILON);
     intersect(shadowRay);
 
     if(shadowRay->t_intersect > lDistance ){
@@ -162,6 +165,15 @@ int Scene::shader(Ray *r) {
   color[1] += pixelColor[1] * m->ambient;
   color[2] += pixelColor[2] * m->ambient;
 
-  if(m->color[3] != 1 || m->reflection != 0) return 1;
-  else return -1;
+  int secondaryRays = 0;
+  r->type = 0;
+  if(m->color[3] != 1.0) {
+    r->type++;
+    secondaryRays++;
+  }
+  if(m->reflection != 0.0) {
+    r->type+=2;
+    //secondaryRays++;
+  }
+  return secondaryRays;
 }

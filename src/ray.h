@@ -29,6 +29,7 @@ class Primitive;
 class Ray
 {
 public:
+  int type;
   double *pixel;
   double pos[3];
   double dir[3];
@@ -41,6 +42,7 @@ public:
   Ray(double *pixel_in, double *pos_in,
       double xDelta, double yDelta, double zDelta);
   Ray(double *pixel_in, double *pos_in, double *dir_in);
+  Ray(Ray *r, int type);
 
   void setPos(double *pos);
   void setDir(double *dir);

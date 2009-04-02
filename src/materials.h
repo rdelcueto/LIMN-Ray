@@ -37,7 +37,7 @@ public:
   double interior;
 
   Material() {
-    color[0] = 1; color[1] = 1; color[2] = 1; color[3] = 0.5;
+    color[0] = 1; color[1] = 1; color[2] = 1; color[3] = 1.0;
     ambient = 0;
     diffuse = 0.9;
     specular = 1.0;

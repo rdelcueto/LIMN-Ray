@@ -19,7 +19,7 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define TILE_SIZE 64
+#define TILE_SIZE 4
 #define TILE_RES (TILE_SIZE*TILE_SIZE)
 
 #include <iostream>
@@ -62,23 +62,28 @@ void printSceneDesc(Scene *s) {
     << "\n\tSamples: " << s->samples << "\n\n";
 }
 
-static void raytrace(Scene *s, Ray **rays, int res) {
-  for(int i = 0; i < res; i++) {
+static int raytrace(Scene *s, Ray **rays, int nRays) {
+  int newRays = 0;
+  for(int i = 0; i < nRays; i++) {
     s->intersect(rays[i]);
     if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
-      if(s->shader(rays[i]) != 1)
-        rays[i]->t_intersect = std::numeric_limits<float>::infinity();
-    delete rays[i];
+      newRays += s->shader(rays[i]);
   }
+  return newRays;
 }
 
-static void raytraceTile(Scene *s, Ray **rays) {
-  for(int i = 0; i < TILE_RES; i++) {
-    s->intersect(rays[i]);
-    if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
-      if(s->shader(rays[i]) != 1)
-        rays[i]->t_intersect = std::numeric_limits<float>::infinity();
-    delete rays[i];
+void createSecondaryRays(Ray **oldRays, Ray **newRays, int nRays) {
+  int j = 0;
+  for(int i = 0; i < nRays; i++) {
+    if(oldRays[i]->type != 0) {
+      if(oldRays[i]->type % 2 != 0) {
+        newRays[j] = new Ray();
+        newRays[j]->pixel = oldRays[i]->pixel;
+        newRays[j]->setPos(oldRays[i]->int_p);
+        newRays[j]->setDir(oldRays[i]->dir);
+        j++;
+      }
+    }
   }
 }
 
@@ -95,66 +100,56 @@ static void render(Scene *s, double *image) {
   double xDelta = -0.5;
   double yDelta = -aspect/2.0;
 
-  // Tiled Render
-  if(TILE_SIZE > 1) {
+  double tileXDelta;
 
-    double tileXDelta;
+  int k = 0;
+  int xTiles = cols/TILE_SIZE;
+  int yTiles = rows/TILE_SIZE;
+  int xPos;
+  int yPos;
+  int nRays = TILE_RES;
+  int depth = s->recurLimit;
 
-    int k = 0;
-    int xTiles = cols/TILE_SIZE;
-    int yTiles = rows/TILE_SIZE;
-    int xPos;
-    int yPos;
-
-    for(int ty = 0; ty < yTiles; ty++) {
-      for(int tx = 0; tx < xTiles; tx++) {
-        // Render Tile
-        Ray **rays = new Ray *[TILE_RES];
-        xPos = tx*TILE_SIZE;
-        yPos = ty*TILE_SIZE;
-        tileXDelta = -0.5 + delta*xPos;
-        yDelta = -aspect/2.0 + delta*yPos;
-        k = 0;
-        for(int y = 0; y < TILE_SIZE; y++) {
-          pixel = (yPos + y)*cols*3;
-          xDelta = tileXDelta;
-          for(int x = 0; x < TILE_SIZE; x++) {
-            rays[k] = new Ray(
-                          image+pixel+((xPos + x)*3),
-                          s->focalPointPos,
-                          xDelta,
-                          yDelta,
-                          0);
-            k++;
-            xDelta += delta;
-          }
-          yDelta += delta;
-        }
-        raytraceTile(s, rays);
-        delete [] rays;
-      }
-    }
-  }
-
-  // Untiled Render
-  else {
-    Ray **rays = new Ray *[res];
-      register int k = 0;
-      for(int i = 0; i < rows; i++) {
-        pixel = i*cols*3;
-        for(int j = 0; j < cols; j++) {
+  for(int ty = 0; ty < yTiles; ty++) {
+    for(int tx = 0; tx < xTiles; tx++) {
+      // Create Tile
+      Ray **rays = new Ray *[TILE_RES];
+      xPos = tx*TILE_SIZE;
+      yPos = ty*TILE_SIZE;
+      tileXDelta = -0.5 + delta*xPos;
+      yDelta = -aspect/2.0 + delta*yPos;
+      k = 0;
+      for(int y = 0; y < TILE_SIZE; y++) {
+        pixel = (yPos + y)*cols*3;
+        xDelta = tileXDelta;
+        for(int x = 0; x < TILE_SIZE; x++) {
           rays[k] = new Ray(
-              image+pixel+(j*3), s->focalPointPos, xDelta, yDelta, 0);
+                        image+pixel+((xPos + x)*3),
+                        s->focalPointPos,
+                        xDelta,
+                        yDelta,
+                        0);
           k++;
           xDelta += delta;
         }
-        xDelta = -0.5;
         yDelta += delta;
       }
-      raytrace(s, rays, res);
-      delete [] rays;
-  }
+      // Render Tile: Primary Rays
+      int nSecRays = raytrace(s, rays, nRays);
 
+      // Secondary Rays
+      int currDepth = 0;
+      Ray **secRays = new Ray *[nSecRays];
+
+      while(nRays != 0 && currDepth < depth) {
+        createSecondaryRays(rays, secRays, nRays);
+        nSecRays = raytrace(s, secRays, nSecRays);
+        secRays = new Ray *[nSecRays];
+        currDepth++;
+      }
+
+    }
+  }
   // Untiled Pixels
   //xTiles = rows % xTiles == 0 ? xTiles : xTiles + 1;
   //yTiles = rows % yTiles == 0 ? yTiles : yTiles + 1;

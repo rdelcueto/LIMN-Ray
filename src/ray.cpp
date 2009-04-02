@@ -22,6 +22,7 @@
 #include "ray.h"
 
 Ray::Ray() {
+  type = 0;
   pos[0] = pos[1] = 0.0; pos[2] = -5.0;
   dir[0] = dir[1] = 0.0; dir[2] = 1.0;
   t_intersect = std::numeric_limits<double>::infinity();
@@ -30,6 +31,7 @@ Ray::Ray() {
 
 Ray::Ray(double *pixel_in, double *pos_in,
   double xDelta, double yDelta, double zDelta) {
+  type = 0;
   pixel = pixel_in;
   pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
   setLookAt(xDelta, yDelta, zDelta);
@@ -38,9 +40,19 @@ Ray::Ray(double *pixel_in, double *pos_in,
 }
 
 Ray::Ray(double *pixel_in, double *pos_in, double *dir_in) {
+  type = 0;
   pixel = pixel_in;
   pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
   dir[0] = dir_in[0]; dir[1] = dir_in[1]; dir[2] = dir_in[2];
+  t_intersect = std::numeric_limits<double>::infinity();
+  p_intersect = NULL;
+}
+
+Ray::Ray(Ray *r, int type) {
+  type = 0;
+  pixel = r->pixel;
+  pos[0] = r->int_p[0]; pos[1] = r->int_p[1]; pos[2] = r->int_p[2];
+  dir[0] = r->dir[0]; dir[1] = r->dir[1]; dir[2] = r->dir[2];
   t_intersect = std::numeric_limits<double>::infinity();
   p_intersect = NULL;
 }
