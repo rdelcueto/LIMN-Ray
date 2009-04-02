@@ -32,8 +32,8 @@
 #include "lights.cpp"
 
 Scene::Scene() {
-  plane_w = 640;
-  plane_h = 640;
+  plane_w = 2048;
+  plane_h = 2048;
   planePos[0] = planePos[1] = planePos[2] = 0.0;
   focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -2.8;
   lookAt[0] = lookAt[1] = 0.0; lookAt[2] = 1.0;
@@ -156,6 +156,7 @@ int Scene::shader(Ray *r) {
         color[2] += l->color[2] * phongS * pixelColor[2];
       }
     }
+    delete shadowRay;
   }
   color[0] += pixelColor[0] * m->ambient;
   color[1] += pixelColor[1] * m->ambient;

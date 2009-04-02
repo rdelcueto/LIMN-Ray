@@ -19,7 +19,7 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define TILE_SIZE 32
+#define TILE_SIZE 64
 #define TILE_RES (TILE_SIZE*TILE_SIZE)
 
 #include <iostream>
@@ -47,6 +47,7 @@ int outputImage(double* image, int image_w, int image_h) {
     }
 
   image_out.close();
+  image_out.clear();
   return 0;
 }
 
@@ -67,6 +68,7 @@ static void raytrace(Scene *s, Ray **rays, int res) {
     if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
       if(s->shader(rays[i]) != 1)
         rays[i]->t_intersect = std::numeric_limits<float>::infinity();
+    delete rays[i];
   }
 }
 
@@ -76,6 +78,7 @@ static void raytraceTile(Scene *s, Ray **rays) {
     if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
       if(s->shader(rays[i]) != 1)
         rays[i]->t_intersect = std::numeric_limits<float>::infinity();
+    delete rays[i];
   }
 }
 
@@ -183,7 +186,12 @@ int main(int argc, char* argv[]) {
 
   // Output Render
   outputImage(image, s->plane_w, s->plane_h);
+
+  // Mem clean
+  s->sceneLights.clear();
+  s->sceneMaterials.clear();
+  s->sceneObjects.clear();
+  delete s;
   delete [] image;
-  image = NULL;
   return 0;
 }
