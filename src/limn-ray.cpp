@@ -19,6 +19,7 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define ENABLE_SEC_RAYS 1
 #define TILE_SIZE 32
 #define TILE_RES (TILE_SIZE*TILE_SIZE)
 
@@ -80,6 +81,10 @@ void createSecondaryRays(Ray **oldRays, Ray **newRays, int nRays) {
         newRays[j] = new Ray(oldRays[i], 1);
         j++;
       }
+      if(oldRays[i]->type > 1) {
+        newRays[j] = new Ray(oldRays[i], 2);
+        j++;
+      }
     }
     delete oldRays[i];
   }
@@ -111,6 +116,8 @@ static void render(Scene *s, double *image) {
   int xPos;
   int yPos;
   int nRays = TILE_RES;
+  int nSecRays;
+  int currDepth;
   int depth = s->recurLimit;
 
   for(int ty = 0; ty < yTiles; ty++) {
@@ -138,27 +145,28 @@ static void render(Scene *s, double *image) {
         yDelta += delta;
       }
       // Render Tile: Primary Rays
-      int nSecRays = raytrace(s, rays, nRays);
+      nSecRays = raytrace(s, rays, nRays);
 
       // Secondary Rays
-      int currDepth = 0;
-      Ray **secRays = new Ray *[nSecRays];
-      createSecondaryRays(rays, secRays, nRays);
-
-      while(currDepth < depth) {
-        nSecRays = raytrace(s, secRays, nSecRays);
-        if(nSecRays > 0) {
-          rays = secRays;
-          secRays = new Ray *[nSecRays];
-          createSecondaryRays(rays, secRays, nSecRays);
+      if(ENABLE_SEC_RAYS > 0) {
+        currDepth = 0;
+        Ray **secRays = new Ray *[nSecRays];
+        createSecondaryRays(rays, secRays, nRays);
+        while(currDepth < depth) {
           nRays = nSecRays;
-          currDepth++;
+          nSecRays = raytrace(s, secRays, nRays);
+          if(nSecRays > 0) {
+            rays = secRays;
+            secRays = new Ray *[nSecRays];
+            createSecondaryRays(rays, secRays, nRays);
+            currDepth++;
+          }
+          else {
+            deleteRayArray(secRays, nRays);
+            currDepth = depth;
+          }
         }
-        else {
-          //deleteRayArray(secRays, nRays);
-          nRays = TILE_RES;
-          currDepth = depth;
-        }
+        nRays = TILE_RES;
       }
     }
   }

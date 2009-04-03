@@ -19,8 +19,9 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define INTERSECT_EPSILON 0.000001
-#define LIGHT_SCALE 10000
+#define ENABLE_SHADOWS 1
+#define INTERSECT_EPSILON 0.0001
+#define LIGHT_SCALE 100000
 
 #include <list>
 #include <limits.h>
@@ -32,33 +33,30 @@
 #include "lights.cpp"
 
 Scene::Scene() {
-  plane_w = 640;
-  plane_h = 640;
+  plane_w = 1024;
+  plane_h = 768;
   planePos[0] = planePos[1] = planePos[2] = 0.0;
   focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -2.8;
   lookAt[0] = lookAt[1] = 0.0; lookAt[2] = 1.0;
   recurLimit = 4;
   samples = 1;
 
-  sceneMaterials.push_back(new Material(1, 0.9, 0.9,  1.0, 0, 1, 1, 1, 0.0, 0.0));
-  sceneMaterials.push_back(new Material(0.9, 1, 0.9,  1.0, 0, 1, 1, 2, 1.0, 0.0));
-  sceneMaterials.push_back(new Material(0.9, 0.9, 1,  0.01, 0, 1, 1, 4, 0.25, 0.1));
+  sceneMaterials.push_back(new Material(1, 0, 0,  0.66, 0.0, 1, 1, 1, 0.25, 0.0));
+  sceneMaterials.push_back(new Material(0, 0, 1,  0.66, 0.0, 1, 1, 1, 0.25, 0.0));
+  sceneMaterials.push_back(new Material(0, 1, 0,  0.66, 0.0, 1, 1, 1, 0.25, 0.0));
+  sceneMaterials.push_back(new Material(0.33, 0.33, 0.33,  1.0, 0.33, 1, 1, 1, 0.5, 0.0));
+
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneLights.push_back(new Omnidirectional(0, 10, 80, 1, 0, 0, 3, 1));
-  sceneLights.push_back(new Omnidirectional(-14.14, -14.14, 80, 0, 1, 0, 3, 1));
-  sceneLights.push_back(new Omnidirectional(14.14, -14.14, 80, 0, 0, 1, 3, 1));
+  sceneLights.push_back(new Omnidirectional(0, 0, 100, 1, 1, 1, 1, 5));
 
-  sceneObjects.push_back(new Sphere(0, -5, 150, 10, *mi));
+  sceneObjects.push_back(new Sphere(-14.14, 0, 200, 10, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(-7.07, 7.07, 170, 10, *mi));
+  sceneObjects.push_back(new Sphere(14.14, 0, 200, 10, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(7.07, 7.07, 130, 10, *mi));
-
-  sceneObjects.push_back(new Plane(-20, 0, 0, 1, 0, 0));
-  sceneObjects.push_back(new Plane(20, 0, 0, -1, 0, 0));
-  sceneObjects.push_back(new Plane(0, 20, 0, 0, -1, 0));
-  sceneObjects.push_back(new Plane(0, -20, 0, 0, 1, 0));
+  sceneObjects.push_back(new Sphere(0, 0, 224.14, 10, *mi));
+  mi++;
+  sceneObjects.push_back(new Plane(0, -10, 0, 0, 1, 0, *mi));
 
 }
 
@@ -122,12 +120,14 @@ int Scene::shader(Ray *r) {
     lDistance = sqrt(blas3dDot(lVec, lVec));
     blas3DNormalize(lVec);
 
-    Ray *shadowRay = new Ray();
-    shadowRay->setPos(intPoint);
-    shadowRay->setDir(lVec);
-    intersect(shadowRay);
+    Ray *shadowRay;
+    if(ENABLE_SHADOWS) {
+      shadowRay = new Ray(NULL, intPoint, lVec);
+      shadowRay->move2IntNrm();
+      intersect(shadowRay);
+    }
 
-    if(shadowRay->t_intersect > lDistance ){
+    if(!ENABLE_SHADOWS || shadowRay->t_intersect > lDistance ){
       lDistance += pDistance;
 
       lightI = l->intensity*LIGHT_SCALE/(lDistance*lDistance*l->damping);
@@ -160,7 +160,7 @@ int Scene::shader(Ray *r) {
         color[2] += l->color[2] * phongS * pixelColor[2];
       }
     }
-    delete shadowRay;
+    if(ENABLE_SHADOWS) delete shadowRay;
   }
   color[0] += pixelColor[0] * m->ambient;
   color[1] += pixelColor[1] * m->ambient;
@@ -174,7 +174,7 @@ int Scene::shader(Ray *r) {
   }
   if(m->reflection != 0.0) {
     r->type+=2;
-    //secondaryRays++;
+    secondaryRays++;
   }
   return secondaryRays;
 }

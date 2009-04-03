@@ -19,7 +19,7 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define NRM_EPS 0.000001;
+#define NRM_EPS 0.001;
 #define DIR_EPS 0.001;
 
 #include "ray.h"
@@ -54,17 +54,30 @@ Ray::Ray(double *pixel_in, double *pos_in, double *dir_in) {
   p_intersect = NULL;
 }
 
-Ray::Ray(Ray *r, int type) {
+Ray::Ray(Ray *r, int type_in) {
   Ray parent = *r;
-  if(type == 1) {
-    type = 0;
+  type = 0;
+  pixel = parent.pixel;
+  pos[0] = parent.int_p[0]; pos[1] = parent.int_p[1]; pos[2] = parent.int_p[2];
+  dir[0] = parent.dir[0]; dir[1] = parent.dir[1]; dir[2] = parent.dir[2];
+  t_intersect = std::numeric_limits<double>::infinity();
+  p_intersect = NULL;
+
+  // Transparency Ray
+  if(type_in == 1) {
     colorWeight = 1 - parent.colorWeight;
-    pixel = parent.pixel;
-    pos[0] = parent.int_p[0]; pos[1] = parent.int_p[1]; pos[2] = parent.int_p[2];
-    dir[0] = parent.dir[0]; dir[1] = parent.dir[1]; dir[2] = parent.dir[2];
     move2Dir();
-    t_intersect = std::numeric_limits<double>::infinity();
-    p_intersect = NULL;
+  }
+
+  // Reflection Ray
+  if(type_in == 2) {
+    colorWeight = 0.1;
+    double s = 2*blas3dDot(dir, parent.int_n);
+    double reflection[3];
+    blasDaxpy(3, s, parent.int_n, 1, reflection, 1);
+    blas3dSubstractXY(dir, reflection, dir);
+    blas3DNormalize(dir);
+    move2IntNrm();
   }
 }
 
