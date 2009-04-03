@@ -19,7 +19,7 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define TILE_SIZE 4
+#define TILE_SIZE 32
 #define TILE_RES (TILE_SIZE*TILE_SIZE)
 
 #include <iostream>
@@ -77,14 +77,17 @@ void createSecondaryRays(Ray **oldRays, Ray **newRays, int nRays) {
   for(int i = 0; i < nRays; i++) {
     if(oldRays[i]->type != 0) {
       if(oldRays[i]->type % 2 != 0) {
-        newRays[j] = new Ray();
-        newRays[j]->pixel = oldRays[i]->pixel;
-        newRays[j]->setPos(oldRays[i]->int_p);
-        newRays[j]->setDir(oldRays[i]->dir);
+        newRays[j] = new Ray(oldRays[i], 1);
         j++;
       }
     }
+    delete oldRays[i];
   }
+}
+
+void deleteRayArray(Ray **rays, int nRays) {
+  for(int i = 0; i < nRays; i++)
+    delete rays[i];
 }
 
 static void render(Scene *s, double *image) {
@@ -140,14 +143,23 @@ static void render(Scene *s, double *image) {
       // Secondary Rays
       int currDepth = 0;
       Ray **secRays = new Ray *[nSecRays];
+      createSecondaryRays(rays, secRays, nRays);
 
-      while(nRays != 0 && currDepth < depth) {
-        createSecondaryRays(rays, secRays, nRays);
+      while(currDepth < depth) {
         nSecRays = raytrace(s, secRays, nSecRays);
-        secRays = new Ray *[nSecRays];
-        currDepth++;
+        if(nSecRays > 0) {
+          rays = secRays;
+          secRays = new Ray *[nSecRays];
+          createSecondaryRays(rays, secRays, nSecRays);
+          nRays = nSecRays;
+          currDepth++;
+        }
+        else {
+          //deleteRayArray(secRays, nRays);
+          nRays = TILE_RES;
+          currDepth = depth;
+        }
       }
-
     }
   }
   // Untiled Pixels

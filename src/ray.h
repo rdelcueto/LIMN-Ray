@@ -30,6 +30,7 @@ class Ray
 {
 public:
   int type;
+  double colorWeight;
   double *pixel;
   double pos[3];
   double dir[3];
@@ -46,6 +47,8 @@ public:
 
   void setPos(double *pos);
   void setDir(double *dir);
+  void move2IntNrm();
+  void move2Dir();
   void move(double delta);
   void setLookAt(double *lookAt);
   void setLookAt(double lookAtx, double lookAty, double lookAtz);

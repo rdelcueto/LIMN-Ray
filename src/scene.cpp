@@ -32,17 +32,17 @@
 #include "lights.cpp"
 
 Scene::Scene() {
-  plane_w = 1024;
-  plane_h = 768;
+  plane_w = 640;
+  plane_h = 640;
   planePos[0] = planePos[1] = planePos[2] = 0.0;
-  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -1.0;
+  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -2.8;
   lookAt[0] = lookAt[1] = 0.0; lookAt[2] = 1.0;
-  recurLimit = 2;
+  recurLimit = 4;
   samples = 1;
 
   sceneMaterials.push_back(new Material(1, 0.9, 0.9,  1.0, 0, 1, 1, 1, 0.0, 0.0));
   sceneMaterials.push_back(new Material(0.9, 1, 0.9,  1.0, 0, 1, 1, 2, 1.0, 0.0));
-  sceneMaterials.push_back(new Material(0.9, 0.9, 1,  0.2, 0, 1, 1, 4, 0.25, 0.1));
+  sceneMaterials.push_back(new Material(0.9, 0.9, 1,  0.01, 0, 1, 1, 4, 0.25, 0.1));
   MaterialList::iterator mi = sceneMaterials.begin();
 
   sceneLights.push_back(new Omnidirectional(0, 10, 80, 1, 0, 0, 3, 1));
@@ -92,9 +92,10 @@ int Scene::shader(Ray *r) {
 
   Primitive *p = r->p_intersect;
   Material *m = p->material;
-  double pixelColor[3] = {m->color[0]*m->color[3],
-                          m->color[1]*m->color[3],
-                          m->color[2]*m->color[3]};
+  double pixelColor[3] = {m->color[0]*m->color[3]*r->colorWeight,
+                          m->color[1]*m->color[3]*r->colorWeight,
+                          m->color[2]*m->color[3]*r->colorWeight};
+  r->colorWeight = m->color[3];
 
   // Shading Pixel
   double *color = r->pixel;
@@ -137,7 +138,7 @@ int Scene::shader(Ray *r) {
       blas3dAddXY(lVec, v, h); // LightPos + EyePos = Halfway = h
       //std::cout << "HW: " << h[0] << ',' << h[1] << ',' << h[2] << std::endl;
       //std::cout << "Norm: " << normP[0] << ',' << normP[1] << ',' << normP[2] << std::endl;
-      //blasDscal(3, 0.5, h, 1); // h = Halfway / 2
+      blasDscal(3, 0.5, h, 1); // h = Halfway / 2
       blasDcopy(3, normP, 1, d, 1);
       blasDscal(3, blas3dDot(h,d), d, 1); // (NdotNormAtP)NormAtP
       blas3dSubstractXY(d, h, d); //
