@@ -129,12 +129,9 @@ Ray::Ray(Ray *r, int type_in) {
     if(parent.weight[0] + parent.weight[1] + parent.weight[2] < COLOR_EPS)
       weight[0] = weight[1] = weight[2] = 0.0;
     else {
-      weight[0] = parent.intersect_material->reflection*
-        parent.intersect_material->color[3]*parent.weight[0];
-      weight[1] = parent.intersect_material->reflection*
-        parent.intersect_material->color[3]*parent.weight[1];
-      weight[2] = parent.intersect_material->reflection*
-        parent.intersect_material->color[3]*parent.weight[2];
+      weight[0] = parent.intersect_material->reflection*parent.weight[0];
+      weight[1] = parent.intersect_material->reflection*parent.weight[1];
+      weight[2] = parent.intersect_material->reflection*parent.weight[2];
     }
   }
 }

@@ -33,34 +33,30 @@
 #include "lights.cpp"
 
 Scene::Scene() {
-  plane_w = 1920;
-  plane_h = 1080;
+  plane_w = 1024;
+  plane_h = 600;
   planePos[0] = planePos[1] = planePos[2] = 0.0;
   focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -3.0;
   lookAt[0] = lookAt[1] = 0.0; lookAt[2] = 1.0;
-  recurLimit = 8;
+  recurLimit = 4;
   samples = 1;
 
   sceneMaterials.push_back(new Material(
-      1.0, 0.0, 0.0, 1.0,  0.0, 1, 1, 2, 1.0, 1.0));
+      1.0, 0.0, 0.0, 0.5,  0.0, 1, 1, 2, 1.0, 1.0));
   sceneMaterials.push_back(new Material(
-      0.0, 0.0, 1.0, 1.0,  0.0, 1, 1, 2, 1.0, 1.0));
+      0.0, 0.0, 1.0, 0.5,  0.0, 1, 1, 2, 1.0, 1.0));
   sceneMaterials.push_back(new Material(
-      0.0, 1.0, 0.0, 1.0,  0.0, 1, 1, 2, 1.0, 1.0));
+      0.0, 1.0, 0.0, 0.5,  0.0, 1, 1, 2, 1.0, 1.0));
   sceneMaterials.push_back(new Material(
-      1.0, 1.0, 1.0, 0.15,  0.0, 0.1, 1, 16, 0, 1.0));
+      1.0, 1.0, 1.0, 0.1,  0.0, 0.25, 1, 16, 0, 1.0));
   sceneMaterials.push_back(new Material(
       0.2, 0.2, 0.2, 1.0,  0.1, 1, 1, 1, 0, 1.0));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneLights.push_back(new Omnidirectional(-14.14, 100, 200, 1, 0, 0, 2, 1));
-  sceneLights.push_back(new Omnidirectional(14.14, 100, 200, 0, 0, 1, 2, 1));
-  sceneLights.push_back(new Omnidirectional(0, 100, 224.14, 0, 1, 0, 2, 1));
-
-  sceneLights.push_back(new Omnidirectional(-141.14, 100, 200, 1, 1, 1, 5, 1));
-  sceneLights.push_back(new Omnidirectional(141.14, 100, 200, 1, 1, 1, 5, 1));
-  sceneLights.push_back(new Omnidirectional(0, 100, 324.14, 1, 1, 1, 5, 1));
+  sceneLights.push_back(new Omnidirectional(-14.14, 100, 200, 1, 0, 0, 16, 2));
+  sceneLights.push_back(new Omnidirectional(14.14, 100, 200, 0, 0, 1, 16, 2));
+  sceneLights.push_back(new Omnidirectional(0, 100, 224.14, 0, 1, 0, 16, 2));
 
   sceneObjects.push_back(new Sphere(-14.14, 0, 200, 8, *mi));
   mi++;
@@ -121,13 +117,9 @@ int Scene::shader(Ray *r) {
 
     Material *m = r->intersect_material;
 
-    pixelColor[0] = r->weight[0]*m->color[0];
-    pixelColor[1] = r->weight[1]*m->color[1];
-    pixelColor[2] = r->weight[2]*m->color[2];
-
-    color[0] += pixelColor[0] * m->ambient;
-    color[1] += pixelColor[1] * m->ambient;
-    color[2] += pixelColor[2] * m->ambient;
+    pixelColor[0] = r->weight[0]*m->color[0]*m->color[3];
+    pixelColor[1] = r->weight[1]*m->color[1]*m->color[3];
+    pixelColor[2] = r->weight[2]*m->color[2]*m->color[3];
 
     r->type = 0;
     if(m->color[3] != 1.0) {
@@ -165,14 +157,15 @@ int Scene::shader(Ray *r) {
         shadowRay->move2IntNrm();
 
         do {
+          shadowRay->intersect_t = std::numeric_limits<double>::infinity();
           shadowL -= intersect(shadowRay);
           blas3Dcopy(shadowRay->intersect_point, shadowRay->position);
           shadowRay->move2Dir();
           }
         while(shadowRay->intersect_t != std::numeric_limits<double>::infinity()
             && shadowL > 0);
-
         if(shadowL < 0) shadowL = 0;
+
       }
 
       if((r->weight[0] + r->weight[1] + r->weight[2]) == 0 &&
@@ -197,16 +190,15 @@ int Scene::shader(Ray *r) {
           phongS *= phongS;
         }
 
-        if(phongD > 0) {
-          color[0] += l->color[0] * phongD * pixelColor[0] * m->color[3];
-          color[1] += l->color[1] * phongD * pixelColor[1] * m->color[3];
-          color[2] += l->color[2] * phongD * pixelColor[2] * m->color[3];
-        }
-        if(phongS > 0) {
-          color[0] += l->color[0] * phongS * pixelColor[0];
-          color[1] += l->color[1] * phongS * pixelColor[1];
-          color[2] += l->color[2] * phongS * pixelColor[2];
-        }
+        if(phongD < 0) phongD = 0;
+        if(phongS < 0) phongS = 0;
+
+        color[0] += l->color[0] *
+          (pixelColor[0] * (phongD + m->ambient) + phongS);
+        color[1] += l->color[1] *
+          (pixelColor[1] * (phongD + m->ambient) + phongS);
+        color[2] += l->color[2] *
+          (pixelColor[2] * (phongD + m->ambient) + phongS);
       }
       if(ENABLE_SHADOWS) delete shadowRay;
     }
