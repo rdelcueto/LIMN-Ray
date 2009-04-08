@@ -33,38 +33,38 @@
 #include "lights.cpp"
 
 Scene::Scene() {
-  plane_w = 1024;
-  plane_h = 600;
+  plane_w = 512;
+  plane_h = 360;
   planePos[0] = planePos[1] = planePos[2] = 0.0;
-  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -3.0;
+  focalPointPos[0] = focalPointPos[1] = 0.0; focalPointPos[2] = -1.7;
   lookAt[0] = lookAt[1] = 0.0; lookAt[2] = 1.0;
   recurLimit = 4;
-  samples = 1;
+  samples = 3;
 
   sceneMaterials.push_back(new Material(
-      1.0, 0.0, 0.0, 0.5,  0.0, 1, 1, 2, 1.0, 1.0));
+      0.9, 0.0, 0.0, 1.0,  0.0, 0.33, 1, 8, 1.0, 1.0));
   sceneMaterials.push_back(new Material(
-      0.0, 0.0, 1.0, 0.5,  0.0, 1, 1, 2, 1.0, 1.0));
+      0.0, 0.0, 0.9, 1.0,  0.0, 0.33, 1, 8, 1.0, 1.0));
   sceneMaterials.push_back(new Material(
-      0.0, 1.0, 0.0, 0.5,  0.0, 1, 1, 2, 1.0, 1.0));
+      0.0, 0.9, 0.0, 1.0,  0.0, 0.33, 1, 8, 1.0, 1.0));
   sceneMaterials.push_back(new Material(
-      1.0, 1.0, 1.0, 0.1,  0.0, 0.25, 1, 16, 0, 1.0));
+      0.0, 0.0, 0.0, 0.25,  0.0, 0.1, 1, 16, 0.75, 1.0));
   sceneMaterials.push_back(new Material(
       0.2, 0.2, 0.2, 1.0,  0.1, 1, 1, 1, 0, 1.0));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneLights.push_back(new Omnidirectional(-14.14, 100, 200, 1, 0, 0, 16, 2));
-  sceneLights.push_back(new Omnidirectional(14.14, 100, 200, 0, 0, 1, 16, 2));
-  sceneLights.push_back(new Omnidirectional(0, 100, 224.14, 0, 1, 0, 16, 2));
+  sceneLights.push_back(new Omnidirectional(-7.07, 50, 100, 1, 0.6, 0.6, 5, 2));
+  sceneLights.push_back(new Omnidirectional(7.07, 50, 100, 0.6, 0.6, 1, 5, 2));
+  sceneLights.push_back(new Omnidirectional(0, 50, 107.07, 0.6, 1, 0.6, 5, 2));
 
-  sceneObjects.push_back(new Sphere(-14.14, 0, 200, 8, *mi));
+  sceneObjects.push_back(new Sphere(-14.14, 5, 100, 8, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(14.14, 0, 200, 8, *mi));
+  sceneObjects.push_back(new Sphere(14.14, 5, 100, 8, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 0, 224.14, 8, *mi));
+  sceneObjects.push_back(new Sphere(0, 5, 124.14, 8, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 0, 212.07, 5, *mi));
+  sceneObjects.push_back(new Sphere(0, 5, 112.07, 5, *mi));
   mi++;
   sceneObjects.push_back(new Plane(0, -10, 0, 0, 1, 0, *mi));
 
@@ -150,29 +150,34 @@ int Scene::shader(Ray *r) {
       blas3DNormalize(lVec);
 
       Ray *shadowRay;
-      double shadowL = 1.0;
+      double shadowLight = 1.0;
 
       if(ENABLE_SHADOWS) {
         shadowRay = new Ray(NULL, intPoint, lVec);
         shadowRay->move2IntNrm();
+        double tmp = 0;
 
         do {
           shadowRay->intersect_t = std::numeric_limits<double>::infinity();
-          shadowL -= intersect(shadowRay);
-          blas3Dcopy(shadowRay->intersect_point, shadowRay->position);
-          shadowRay->move2Dir();
+          tmp = intersect(shadowRay);
+          if(shadowRay->intersect_t < lDistance) {
+            shadowLight -= tmp;
+            blas3Dcopy(shadowRay->intersect_point, shadowRay->position);
+            shadowRay->move2Dir();
+          }
+          else break;
           }
         while(shadowRay->intersect_t != std::numeric_limits<double>::infinity()
-            && shadowL > 0);
-        if(shadowL < 0) shadowL = 0;
+            && shadowLight > 0);
+        if(shadowLight < 0) shadowLight = 0;
 
       }
 
       if((r->weight[0] + r->weight[1] + r->weight[2]) == 0 &&
-          !ENABLE_SHADOWS || shadowL > 0 ){
+          !ENABLE_SHADOWS || shadowLight > 0 ){
 
         lDistance += r->sum_ts;
-        lightI = l->intensity*shadowL*LIGHT_SCALE/(lDistance*lDistance*l->damping);
+        lightI = l->intensity*shadowLight*LIGHT_SCALE/(lDistance*lDistance*l->damping);
         // Diffuse
         phongD = blas3dDot(lVec, normP) * m->diffuse * lightI;
 

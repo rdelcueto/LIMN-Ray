@@ -67,3 +67,24 @@ public:
     damping = d;
   }
 };
+
+class AreaLight : public Light {
+public:
+
+  AreaLight() {
+    pos[0] = 0.0; pos[1] = 10.0; pos[2] = 0.0;
+    color[0] = color[1] = color[2] = 1.0;
+    intensity = 1.0;
+    damping = 1.0;
+  }
+
+  AreaLight(double posx, double posy, double posz,
+                  double colorR, double colorG, double colorB,
+                  double i, double d) {
+
+    pos[0] = posx; pos[1] = posy; pos[2] = posz;
+    color[0] = colorR; color[1] = colorG; color[2] = colorB;
+    intensity = i;
+    damping = d;
+  }
+};

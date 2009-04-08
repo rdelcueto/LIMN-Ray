@@ -20,7 +20,7 @@
  */
 
 #define ENABLE_SEC_RAYS 1
-#define TILE_SIZE 64
+#define TILE_SIZE 8
 #define TILE_RES (TILE_SIZE*TILE_SIZE)
 
 #include <iostream>
@@ -37,14 +37,21 @@ double diffclock(clock_t clock1, clock_t clock2) {
     return diffms;
 }
 
-int outputImage(double* image, int image_w, int image_h) {
+int outputImage(double* image, int image_w, int image_h, int spPixel) {
   //int res = image_w * image_h;
   pngwriter image_out(image_w, image_h, 0, "out.png");
   register int k = 0;
   for(register int y = 1; y <= image_h; y++)
     for(register int x = 1; x <= image_w; x++) {
-      image_out.plot(x, y, image[k], image[k+1], image[k+2]);
-      k+=3;
+      if(spPixel > 1) {
+        image_out.plot(x, y,
+            image[k]/spPixel, image[k+1]/spPixel, image[k+2]/spPixel);
+        k+=3;
+      }
+      else {
+        image_out.plot(x, y, image[k], image[k+1], image[k+2]);
+        k+=3;
+      }
     }
 
   image_out.close();
@@ -60,7 +67,8 @@ void printSceneDesc(Scene *s) {
   std::cout << "\tCamera LookAt: ("
         << s->lookAt[0] << ", " << s->lookAt[1] << ", " << s->lookAt[2] << ")\n";
   std::cout << "\tRecursive Limit: " << s->recurLimit
-    << "\n\tSamples: " << s->samples << "\n\n";
+    << "\n\tSamples: " << s->samples << "x" << s->samples
+      << " = " << s->samples*s->samples << " samples per pixel.\n\n";
 }
 
 int raytrace(Scene *s, Ray **rays, int nRays) {
@@ -109,12 +117,19 @@ void render(Scene *s, double *image) {
 
   double tileXDelta;
 
+  int samples = s->samples;
+  int sqrSamples = samples*samples;
+  double sDelta = delta/(samples + 1);
+  double sOffset = delta/2;
+  double xsDelta;
+  double ysDelta;
+
   int k = 0;
   int xTiles = cols/TILE_SIZE;
   int yTiles = rows/TILE_SIZE;
   int xPos;
   int yPos;
-  int nRays = TILE_RES;
+  int nRays = TILE_RES*sqrSamples;
   int nSecRays;
   int currDepth;
   int depth = s->recurLimit + 1;
@@ -122,7 +137,7 @@ void render(Scene *s, double *image) {
   for(int ty = 0; ty < yTiles; ty++) {
     for(int tx = 0; tx < xTiles; tx++) {
       // Create Tile
-      Ray **rays = new Ray *[TILE_RES];
+      Ray **rays = new Ray *[nRays];
       xPos = tx*TILE_SIZE;
       yPos = ty*TILE_SIZE;
       tileXDelta = -0.5 + delta*xPos;
@@ -132,13 +147,32 @@ void render(Scene *s, double *image) {
         pixel = (yPos + y)*cols*3;
         xDelta = tileXDelta;
         for(int x = 0; x < TILE_SIZE; x++) {
-          rays[k] = new Ray(
-                        image+pixel+((xPos + x)*3),
-                        s->focalPointPos,
-                        xDelta,
-                        yDelta,
-                        0);
-          k++;
+          if(samples > 1) {
+            ysDelta = sDelta - sOffset;
+            for(int i = 0; i < samples; i++) {
+              xsDelta = sDelta - sOffset;
+              for(int j = 0; j < samples; j++) {
+                rays[k] = new Ray(
+                              image+pixel+((xPos + x)*3),
+                              s->focalPointPos,
+                              xDelta + xsDelta,
+                              yDelta + ysDelta,
+                              0);
+                k++;
+                xsDelta += sDelta;
+              }
+              ysDelta += sDelta;
+            }
+          }
+          else {
+            rays[k] = new Ray(
+                          image+pixel+((xPos + x)*3),
+                          s->focalPointPos,
+                          xDelta,
+                          yDelta,
+                          0);
+            k++;
+          }
           xDelta += delta;
         }
         yDelta += delta;
@@ -165,7 +199,7 @@ void render(Scene *s, double *image) {
             currDepth = depth;
           }
         }
-        nRays = TILE_RES;
+        nRays = TILE_RES*sqrSamples;
       }
     }
   }
@@ -199,7 +233,7 @@ int main(int argc, char* argv[]) {
   std::cout << "Done!\nRender Time: ~" << diffclock(end, begin) << "s.\n";
 
   // Output Render
-  outputImage(image, s->plane_w, s->plane_h);
+  outputImage(image, s->plane_w, s->plane_h, s->samples*s->samples);
 
   // Mem clean
   s->sceneLights.clear();
