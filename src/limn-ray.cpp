@@ -20,7 +20,7 @@
  */
 
 #define ENABLE_SEC_RAYS 1
-#define TILE_SIZE 32
+#define TILE_SIZE 64
 #define TILE_RES (TILE_SIZE*TILE_SIZE)
 
 #include <iostream>
@@ -63,11 +63,11 @@ void printSceneDesc(Scene *s) {
     << "\n\tSamples: " << s->samples << "\n\n";
 }
 
-static int raytrace(Scene *s, Ray **rays, int nRays) {
+int raytrace(Scene *s, Ray **rays, int nRays) {
   int newRays = 0;
   for(int i = 0; i < nRays; i++) {
     s->intersect(rays[i]);
-    if(std::numeric_limits<float>::infinity() != rays[i]->t_intersect)
+    if(std::numeric_limits<float>::infinity() != rays[i]->intersect_t)
       newRays += s->shader(rays[i]);
   }
   return newRays;
@@ -95,11 +95,10 @@ void deleteRayArray(Ray **rays, int nRays) {
     delete rays[i];
 }
 
-static void render(Scene *s, double *image) {
+void render(Scene *s, double *image) {
 
   int cols = s->plane_w;
   int rows = s->plane_h;
-  int res = cols * rows;
 
   register int pixel;
 
@@ -118,7 +117,7 @@ static void render(Scene *s, double *image) {
   int nRays = TILE_RES;
   int nSecRays;
   int currDepth;
-  int depth = s->recurLimit;
+  int depth = s->recurLimit + 1;
 
   for(int ty = 0; ty < yTiles; ty++) {
     for(int tx = 0; tx < xTiles; tx++) {
@@ -177,7 +176,7 @@ static void render(Scene *s, double *image) {
 
 int main(int argc, char* argv[]) {
 
-  std::cout << "Limn-Ray v0.2" << std::endl;
+  std::cout << "Limn-Ray v0.3" << std::endl;
 
   // Parse Scene
   Scene *s = new Scene();

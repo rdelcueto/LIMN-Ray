@@ -88,6 +88,7 @@ void blasDaxpy(int n, double alpha,
 void blasDcopy(int n, const double *x, int incx,
                double *y, int incy);
 
+void blas3Dcopy(const double *x, double *y);
 
 /* blasFast3dDot()
  * Computes the dot product of two double-precision 3D vectors.
@@ -178,7 +179,8 @@ void blas3dSubstractXY(const double *x,
                        const double *y,
                        double *z);
 
-void blasInvert(int n, double *x);
+void blasInvert(int n, const double *x, double *y);
+void blas3DInvert(const double *x, double *y);
 
 /* blasCrossProd()
  * Computes the cross product of a double-precision vector x of size 3 with a

@@ -44,7 +44,7 @@ public:
   LightList sceneLights;
 
   Scene();
-  void intersect(Ray *r);
+  double intersect(Ray *r);
   int shader(Ray *r);
 
 };

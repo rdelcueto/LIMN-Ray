@@ -23,21 +23,22 @@
 #define RAY_H_
 
 #include "blas.h"
-
-class Primitive;
+#include "materials.h"
 
 class Ray
 {
 public:
   int type;
-  double colorWeight;
-  double *pixel;
-  double pos[3];
-  double dir[3];
-  double int_p[3];
-  double int_n[3];
-  double t_intersect;
-  Primitive *p_intersect;
+  double *ray_pixel;
+  double weight[3];
+  double position[3];
+  double direction[3];
+  double intersect_point[3];
+  double intersect_normal[3];
+  double intersect_t;
+  double r_refrac;
+  double sum_ts;
+  Material *intersect_material;
 
   Ray();
   Ray(double *pixel_in, double *pos_in,
@@ -45,8 +46,6 @@ public:
   Ray(double *pixel_in, double *pos_in, double *dir_in);
   Ray(Ray *r, int type);
 
-  void setPos(double *pos);
-  void setDir(double *dir);
   void move2IntNrm();
   void move2Dir();
   void move(double delta);

@@ -29,31 +29,31 @@ class Material {
 public:
 
   double color[4];
+  double reflection;
   double ambient;
   double diffuse;
   double specular;
   double specular_Hardness;
-  double reflection;
   double interior;
 
   Material() {
-    color[0] = 1; color[1] = 1; color[2] = 1; color[3] = 1.0;
+    color[0] = 1; color[1] = 1; color[2] = 1; color[3] = 1;
+    reflection = 0;
+    interior = 0;
     ambient = 0;
     diffuse = 0.9;
     specular = 1.0;
     specular_Hardness = 16 * 4;
-    reflection = 0;
-    interior = 0;
   }
 
   Material(double red, double green, double blue, double opacy) {
     color[0] = red; color[1] = green; color[2] = blue; color[3] = opacy;
+    reflection = 0;
+    interior = 0;
     ambient = 0;
     diffuse = 0.9;
     specular = 1.0;
     specular_Hardness = 16 * 4;
-    reflection = 0;
-    interior = 0;
   }
 
   Material(double red, double green, double blue, double opacy,
@@ -61,12 +61,12 @@ public:
            double specular_in, double specHardness_in,
            double reflection_in, double interior_in) {
     color[0] = red; color[1] = green; color[2] = blue; color[3] = opacy;
+    reflection = reflection_in;
+    interior = interior_in;
     ambient = ambient_in;
     diffuse = diffuse_in;
     specular = specular_in;
-    specular_Hardness = specHardness_in * 4; // Blinn Half-way vector compensate
-    reflection = reflection_in;
-    interior = interior_in;
+    specular_Hardness = specHardness_in * 4;
   }
 
 };

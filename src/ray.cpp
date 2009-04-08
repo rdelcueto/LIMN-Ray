@@ -19,109 +19,158 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define NRM_EPS 0.001;
-#define DIR_EPS 0.001;
+#define NRM_EPS 0.000001
+#define DIR_EPS 0.0001
+#define COLOR_EPS 0.01
+#define REFLECT_INTENSITY 1
 
 #include "ray.h"
 
 Ray::Ray() {
   type = 0;
-  colorWeight = 1.0;
-  pos[0] = pos[1] = 0.0; pos[2] = -5.0;
-  dir[0] = dir[1] = 0.0; dir[2] = 1.0;
-  t_intersect = std::numeric_limits<double>::infinity();
-  p_intersect = NULL;
+  weight[0] = weight[1] = weight[2] = 1.0;
+  position[0] = position[1] = 0.0; position[2] = -5.0;
+  direction[0] = direction[1] = 0.0; direction[2] = 1.0;
+  intersect_t = std::numeric_limits<double>::infinity();
+  sum_ts = 0;
+  intersect_material = NULL;
+  r_refrac = 1.0;
 }
 
 Ray::Ray(double *pixel_in, double *pos_in,
   double xDelta, double yDelta, double zDelta) {
   type = 0;
-  colorWeight = 1.0;
-  pixel = pixel_in;
-  pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
+  weight[0] = weight[1] = weight[2] = 1.0;
+  ray_pixel = pixel_in;
+  position[0] = pos_in[0]; position[1] = pos_in[1]; position[2] = pos_in[2];
   setLookAt(xDelta, yDelta, zDelta);
-  t_intersect = std::numeric_limits<double>::infinity();
-  p_intersect = NULL;
+  intersect_t = std::numeric_limits<double>::infinity();
+  sum_ts = 0;
+  intersect_material = NULL;
+  r_refrac = 1.0;
 }
 
 Ray::Ray(double *pixel_in, double *pos_in, double *dir_in) {
   type = 0;
-  colorWeight = 1.0;
-  pixel = pixel_in;
-  pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
-  dir[0] = dir_in[0]; dir[1] = dir_in[1]; dir[2] = dir_in[2];
-  t_intersect = std::numeric_limits<double>::infinity();
-  p_intersect = NULL;
+  weight[0] = weight[1] = weight[2] = 1.0;
+  ray_pixel = pixel_in;
+  position[0] = pos_in[0]; position[1] = pos_in[1]; position[2] = pos_in[2];
+  direction[0] = dir_in[0]; direction[1] = dir_in[1]; direction[2] = dir_in[2];
+  intersect_t = std::numeric_limits<double>::infinity();
+  sum_ts = 0;
+  intersect_material = NULL;
+  r_refrac = 1.0;
 }
 
 Ray::Ray(Ray *r, int type_in) {
-  Ray parent = *r;
-  type = 0;
-  pixel = parent.pixel;
-  pos[0] = parent.int_p[0]; pos[1] = parent.int_p[1]; pos[2] = parent.int_p[2];
-  dir[0] = parent.dir[0]; dir[1] = parent.dir[1]; dir[2] = parent.dir[2];
-  t_intersect = std::numeric_limits<double>::infinity();
-  p_intersect = NULL;
 
-  // Transparency Ray
+  Ray parent = *r;
+
+  type = 0;
+  ray_pixel = parent.ray_pixel;
+  position[0] = parent.intersect_point[0];
+  position[1] = parent.intersect_point[1];
+  position[2] = parent.intersect_point[2];
+  intersect_t = std::numeric_limits<double>::infinity();
+  sum_ts = parent.sum_ts;
+  intersect_material = NULL;
+
+  // Refraction Ray
   if(type_in == 1) {
-    colorWeight = 1 - parent.colorWeight;
-    move2Dir();
+
+    double nRatio = parent.intersect_material->interior;
+    double n[3];
+    blasDcopy(3, parent.direction, 1, direction, 1);
+    blasDcopy(3, parent.intersect_normal, 1, n, 1);
+    if(blas3dDot(n, direction) < 0) {
+      r_refrac = nRatio;
+      nRatio = parent.r_refrac/nRatio;
+    }
+    else {
+      r_refrac = parent.r_refrac;
+      nRatio = nRatio/parent.r_refrac;
+      blasInvert(3, n, n);
+    }
+    double cosI = blas3dDot(n, direction);
+    double sinT2 = nRatio*nRatio * (1 - cosI*cosI);
+    if(sinT2 > 1) {
+      type_in = 2; // Total Internal Reflection
+    }
+    else {
+
+      blasDscal(3, nRatio, direction, 1);
+      blasDscal(3, nRatio + sqrt(1.0 - sinT2), n, 1);
+      blas3dSubstractXY(direction, n, direction);
+      blas3DNormalize(direction);
+
+      move2Dir();
+
+      if(parent.weight[0] + parent.weight[1] + parent.weight[2] < COLOR_EPS)
+        weight[0] = weight[1] = weight[2] = 0.0;
+      else {
+        double opacy = 1 - parent.intersect_material->color[3];
+        weight[0] = opacy * parent.weight[0];
+        weight[1] = opacy * parent.weight[1];
+        weight[2] = opacy * parent.weight[2];
+      }
+    }
   }
 
   // Reflection Ray
   if(type_in == 2) {
-    colorWeight = 0.1;
-    double s = 2*blas3dDot(dir, parent.int_n);
-    double reflection[3];
-    blasDaxpy(3, s, parent.int_n, 1, reflection, 1);
-    blas3dSubstractXY(dir, reflection, dir);
-    blas3DNormalize(dir);
+    r_refrac = parent.r_refrac;
+    blas3Dcopy(parent.intersect_normal, direction);
+    blasDscal(3, -2*blas3dDot(direction, parent.intersect_normal), direction, 1);
+    blas3dSubstractXY(parent.direction, direction, direction);
+    blas3DNormalize(direction);
+
     move2IntNrm();
+
+    if(parent.weight[0] + parent.weight[1] + parent.weight[2] < COLOR_EPS)
+      weight[0] = weight[1] = weight[2] = 0.0;
+    else {
+      weight[0] = parent.intersect_material->reflection*
+        parent.intersect_material->color[3]*parent.weight[0];
+      weight[1] = parent.intersect_material->reflection*
+        parent.intersect_material->color[3]*parent.weight[1];
+      weight[2] = parent.intersect_material->reflection*
+        parent.intersect_material->color[3]*parent.weight[2];
+    }
   }
 }
 
-void Ray::setPos(double *pos_in) {
-  pos[0] = pos_in[0]; pos[1] = pos_in[1]; pos[2] = pos_in[2];
-}
-
-void Ray::setDir(double *dir_in) {
-  dir[0] = dir_in[0]; dir[1] = dir_in[1]; dir[2] = dir_in[2];
-  //blasFast3DNormalize(dir);
-}
-
 void Ray::move2IntNrm() {
-  pos[0] += dir[0]*NRM_EPS;
-  pos[1] += dir[1]*NRM_EPS;
-  pos[2] += dir[2]*NRM_EPS;
+  position[0] += direction[0]*NRM_EPS;
+  position[1] += direction[1]*NRM_EPS;
+  position[2] += direction[2]*NRM_EPS;
 }
 
 void Ray::move2Dir() {
-  pos[0] += dir[0]*DIR_EPS;
-  pos[1] += dir[1]*DIR_EPS;
-  pos[2] += dir[2]*DIR_EPS;
+  position[0] += direction[0]*DIR_EPS;
+  position[1] += direction[1]*DIR_EPS;
+  position[2] += direction[2]*DIR_EPS;
 }
 
 void Ray::move(double delta) {
-  pos[0] += dir[0]*delta;
-  pos[1] += dir[1]*delta;
-  pos[2] += dir[2]*delta;
+  position[0] += direction[0]*delta;
+  position[1] += direction[1]*delta;
+  position[2] += direction[2]*delta;
 }
 
 void Ray::setLookAt(double *lookAt) {
-  dir[0] = lookAt[0]; dir[1] = lookAt[1]; dir[2] = lookAt[2];
-  blas3dSubstractXY(dir, pos, dir);
-  blas3DNormalize(dir);
+  direction[0] = lookAt[0]; direction[1] = lookAt[1]; direction[2] = lookAt[2];
+  blas3dSubstractXY(direction, position, direction);
+  blas3DNormalize(direction);
 }
 
 void Ray::setLookAt(double lookAtx, double lookAty, double lookAtz) {
-  dir[0] = lookAtx; dir[1] = lookAty; dir[2] = lookAtz;
-  blas3dSubstractXY(dir, pos, dir);
-  blas3DNormalize(dir);
+  direction[0] = lookAtx; direction[1] = lookAty; direction[2] = lookAtz;
+  blas3dSubstractXY(direction, position, direction);
+  blas3DNormalize(direction);
 }
 
 void Ray::getPosAtT(double t, double *p) {
-  blasDcopy(3, dir, 1, p, 1);
+  blasDcopy(3, direction, 1, p, 1);
   blasDscal(3, t, p, 1);
-  p[0] += pos[0]; p[1] += pos[1]; p[2] += pos[2];
+  p[0] += position[0]; p[1] += position[1]; p[2] += position[2];
 }

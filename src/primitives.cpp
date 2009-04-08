@@ -55,10 +55,10 @@ public:
   }
 
   double intersect(Ray *r) {
-    double nDotDir = blas3dDot(planeN, r->dir);
+    double nDotDir = blas3dDot(planeN, r->direction);
     if (nDotDir != 0) {
       double line[3];
-      blas3dSubstractXY(r->pos, pos, line);
+      blas3dSubstractXY(r->position, pos, line);
       double nDotLine = -blas3dDot(planeN, line);
       if(nDotLine != 0)
         return nDotLine/nDotDir;
@@ -103,9 +103,9 @@ public:
 
   double intersect(Ray *r) {
     double oc[3];
-    blas3dSubstractXY(pos, r->pos, oc);
+    blas3dSubstractXY(pos, r->position, oc);
     double l2oc = blas3dDot(oc, oc);
-    double tca = blas3dDot(oc, r->dir);
+    double tca = blas3dDot(oc, r->direction);
     double l2hc = sqrRadius - l2oc + tca*tca;
     if(l2oc < sqrRadius) return tca + sqrt(l2hc);
     else

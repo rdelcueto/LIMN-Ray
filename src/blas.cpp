@@ -93,11 +93,18 @@ void blasDcopy(int n, const double *x, int incx,
                double *y, int incy) {
 
   if(n <= 0) return;
-
   int i;
 
   for(i=0; i < n; i++)
     y[i * incy] = x[i * incx];
+
+}
+
+void blas3Dcopy(const double *x, double *y) {
+
+  y[0] = x[0];
+  y[1] = x[1];
+  y[2] = x[2];
 
 }
 
@@ -205,9 +212,15 @@ void blasSubstractXY(int n, const double *x,
    z[i] = x[i] - y[i];
 }
 
-void blasInvert(int n, double *x) {
+void blas3DInvert(const double *x, double *y) {
+    y[0] = -x[0];
+    y[1] = -x[1];
+    y[2] = -x[2];
+}
+
+void blasInvert(int n, const double *x, double *y) {
   for(register int i = 0; i < n; i++)
-    x[i] = -x[i];
+    y[i] = -x[i];
 }
 
 void blasCrossProd(const double *x, int incx,
