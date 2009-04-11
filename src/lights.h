@@ -35,6 +35,10 @@ public:
   double damping;
 
   Light() {}
+
+  virtual int getSamples() {return 0;}
+  virtual void getPosI(int i, double *lpos) {};
+
 };
 
 typedef std::list<Light*> LightList;
