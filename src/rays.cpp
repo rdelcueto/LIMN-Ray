@@ -26,24 +26,15 @@
 class VisionRay : public Ray {
 public:
   double *pixel;
+  double *zBufferPixel;
   double weight[3];
   double startRefractIndex;
 
-  VisionRay(double *pixel_in, double *pos, double *dir) {
+  VisionRay(double *pixel_in, double *zBufferPixel_in, double *pos) {
     type = 0;
     sumTs = 0;
     pixel = pixel_in;
-    weight[0] = weight[1] = weight[2] = 1.0;
-    blasCopy(pos, position);
-    blasCopy(dir, direction);
-    startRefractIndex = 1.0;
-    intersectionT = std::numeric_limits<double>::infinity();
-  }
-
-  VisionRay(double *pixel_in, double *pos) {
-    type = 0;
-    sumTs = 0;
-    pixel = pixel_in;
+    zBufferPixel = zBufferPixel_in;
     weight[0] = weight[1] = weight[2] = 1.0;
     blasCopy(pos, position);
     startRefractIndex = 1.0;
@@ -54,6 +45,7 @@ public:
     type = 0;
     sumTs = r->sumTs;
     pixel = r->pixel;
+    zBufferPixel = NULL;
     startRefractIndex = r->intersectionMaterial->interior;
     intersectionT = std::numeric_limits<double>::infinity();
     blasCopy(r->intersectionPoint, position);

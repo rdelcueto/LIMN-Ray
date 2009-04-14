@@ -24,52 +24,50 @@
 #include "scene.h"
 
 Scene::Scene() {
-  image_width = 1280;
+  image_width = 1152;
   image_height = 768;
   res = image_height*image_width;
 
-  cameraPos[0] = cameraPos[1] = 0.0; cameraPos[2] = 0.0;
-  cameraLookAt[0] = cameraLookAt[1] = 0.0; cameraLookAt[2] = 1.0;
-  focalLength = 50;
+  cameraPos[0] = 0; cameraPos[1] = 0; cameraPos[2] = 0;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 0; cameraLookAt[2] = 1;
+  cameraRollAngle = 0;
 
-  samplesPerPixel = 1;
-  secondaryRaysDepth = 8;
-  shadows = 1;
-  zBufferMaxDepth = 512;
+  focalLength = 30;
+  focusPoint = 100;
+  zBufferMaxDepth = 128;
   saveZbuffer = 1;
 
-  renderedImage = new double[res*3];
-  zBuffer = new double[res];
-
-  for(register int i = 0; i < res*3; i++)
-    renderedImage[i] = 0.0;
-  for(register int i = 0; i < res; i++)
-    zBuffer[i] = -std::numeric_limits<double>::infinity();
+  samplesPerPixel = 1;
+  secondaryRaysDepth = 1;
+  shadows = 1;
 
 // Hardcoded Scene
 
-  sceneMaterials.push_back(new Material(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(1.0, 1.0, 1.0, 1.0, 0.0, 0, 0, 1, 16, 1.0, 1.05));
-  sceneMaterials.push_back(new Material(0.2, 0.2, 0.2, 1.0, 0.0, 0.1, 1, 1, 1, 0, 1.0));
-
-  MaterialList::iterator mi = sceneMaterials.begin();
-
-  sceneLights.push_back(new Omnidirectional(0, 0, 75, 1, 1, 1, 5, 1));
+  sceneLights.push_back(new Omnidirectional(0, 100, 100, 1, 1, 1, 10, 1));
 //  sceneLights.push_back(new Omnidirectional(-7.07, 75, 100, 1, 0.6, 0.6, 10, 2));
 //  sceneLights.push_back(new Omnidirectional(7.07, 75, 100, 0.6, 0.6, 1, 10, 2));
 //  sceneLights.push_back(new Omnidirectional(0, 75, 107.07, 0.6, 1, 0.6, 10, 2));
 
-  sceneObjects.push_back(new Sphere(-14.14, 5, 100, 8, *mi));
+//  sceneLights.push_back(new AreaLight(10, 10, 4, 4, 1, 0, 0, 100, 1, 1, 1, 5, 1));
+
+  sceneMaterials.push_back(new Material(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(1.0, 0.0, 0.0, 0.0, 0.2, 0, 0, 0.666, 16, 0.5, 1.05));
+  sceneMaterials.push_back(new Material(0.333, 0.333, 0.333, 1.0, 0.0, 0.0, 0.25, 0.5, 16, 0.666, 1.0));
+
+  MaterialList::iterator mi = sceneMaterials.begin();
+
+//  sceneObjects.push_back(new Sphere(0, 0, 50, 10, *mi));
+  sceneObjects.push_back(new Sphere(-8.66, 8.66, 100, 6, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(14.14, 5, 100, 8, *mi));
+  sceneObjects.push_back(new Sphere(8.66, 8.66, 100, 6, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 5, 124.14, 8, *mi));
+  sceneObjects.push_back(new Sphere(0, -5, 100, 6, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 5, 112.07, 3, *mi));
+//  sceneObjects.push_back(new Sphere(0, 5, 100, 25, *mi));
   mi++;
-  sceneObjects.push_back(new Plane(0, -10, 0, 0, 1, 0, *mi));
+  sceneObjects.push_back(new Plane(0, -25, 0, 0, 1, 0, *mi));
 
 }
 
@@ -82,8 +80,9 @@ void Scene::outputImage(double* image,
     int image_w, int image_h, int imageFlag, char* imageName) {
 
   int s = samplesPerPixel*samplesPerPixel;
+  int k = 0;
   pngwriter image_out(image_w, image_h, 0, imageName);
-  register int k = 0;
+
   if(imageFlag) {
     for(register int y = 1; y <= image_h; y++)
       for(register int x = 1; x <= image_w; x++) {
@@ -99,25 +98,30 @@ void Scene::outputImage(double* image,
       }
   }
   else {
-    for(register int y = 1; y <= image_h; y++)
+    for(register int y = 1; y <= image_h; y++) {
       for(register int x = 1; x <= image_w; x++) {
         image_out.plot(x, y, image[k], image[k], image[k]);
         k++;
       }
+    }
   }
+
   image_out.close();
   image_out.clear();
 }
 
-int Scene::raytrace(VisionRay **rays, int nRays, double *zBufferPos) {
+int Scene::raytrace(VisionRay **rays, int nRays) {
+
+  double *z;
   int nSecRays = 0;
-  int i;
-  for(i = 0; i < nRays; i++) {
+
+  for(int i = 0; i < nRays; i++) {
     intersectRay(rays[i]);
     if(std::numeric_limits<float>::infinity() != rays[i]->intersectionT) {
-      if(zBufferPos != NULL)
-        zBufferPos[i] = -rays[i]->intersectionT;
-
+      if(saveZbuffer && rays[i]->zBufferPixel != NULL) {
+        z = rays[i]->zBufferPixel;
+        z[0] = rays[i]->intersectionT;
+      }
       nSecRays += shadeRayIntersection(rays[i]);
     }
   }
@@ -137,14 +141,25 @@ void Scene::buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRa
         j++;
       }
     }
-    delete oldRays[i];
   }
 }
 
 void Scene::render() {
-  std::cout << "Rendering... ";
-  clock_t begin = clock();
 
+  getCameraMatrix(cameraPos, cameraLookAt, rayTransformationMat);
+
+  renderedImage = new double[res*3];
+  zBuffer = new double[res];
+
+  // Initialize Rendered Image Array
+  for(register int i = 0; i < res*3; i++)
+    renderedImage[i] = 0.0;
+
+  // Initialize zBufferArray
+  for(register int i = 0; i < res; i++)
+    zBuffer[i] = -std::numeric_limits<double>::infinity();
+
+  clock_t begin = clock();
   int w, h, imagePixel, zbufferPixel, k;
 
   w = image_width;
@@ -152,9 +167,9 @@ void Scene::render() {
 
   // Projection Plane Pixel Grid
   double aspect = (h*1.0) / w;
-  double delta = 1.0/w;
-  double xDelta = -0.5;
-  double yDelta = -aspect/2.0;
+  double delta = 3.6/w;
+  double xDelta = -1.8;
+  double yDelta = -1.8*aspect;
 
   // Pixel
   int sqrSamples = samplesPerPixel*samplesPerPixel;
@@ -164,7 +179,7 @@ void Scene::render() {
   double ysDelta;
 
   double pos[3];
-  pos[0] = pos[1] = 0.0; pos[2] = -1.7;
+  pos[0] = pos[1] = 0.0; pos[2] = -focalLength/10;
 
   int nRays = w*sqrSamples;
   int nSecRays = 0;
@@ -174,8 +189,8 @@ void Scene::render() {
   // Rows
   for(int y = 0; y < h; y++) {
     k = 0;
-    rays = new VisionRay *[nRays];
-    xDelta = -0.5;
+    rays = new VisionRay *[nRays*sqrSamples];
+    xDelta = -1.8;
     zbufferPixel = y*w;
     imagePixel = zbufferPixel*3;
 
@@ -187,8 +202,11 @@ void Scene::render() {
         for(int i = 0; i < samplesPerPixel; i++) {
           xsDelta = sDelta - sOffset;
           for(int j = 0; j < samplesPerPixel; j++) {
-            rays[k] = new VisionRay(renderedImage+imagePixel, pos);
+            rays[k] = new VisionRay(
+                renderedImage+imagePixel, zBuffer+zbufferPixel, pos);
             rays[k]->setLookAt(xDelta + xsDelta, yDelta + ysDelta, 0);
+            rotateRay(rays[k], rayTransformationMat);
+            blasAdd(rays[k]->position, cameraPos, rays[k]->position);
             k++;
             xsDelta += sDelta;
           }
@@ -197,54 +215,86 @@ void Scene::render() {
       }
       // No Multisampling
       else {
-        rays[k] = new VisionRay(renderedImage+imagePixel, pos);
+        rays[k] = new VisionRay(
+            renderedImage+imagePixel, zBuffer+zbufferPixel, pos);
         rays[k]->setLookAt(xDelta, yDelta, 0);
+        rotateRay(rays[k], rayTransformationMat);
+        blasAdd(rays[k]->position, cameraPos, rays[k]->position);
         k++;
       }
+      zbufferPixel++;
       imagePixel += 3;
       xDelta += delta;
     }
     // Render Primary Rays
-    if(saveZbuffer)
-      nSecRays = raytrace(rays, nRays, zBuffer+zbufferPixel);
-    else
-      nSecRays = raytrace(rays, nRays, NULL);
+    nSecRays = raytrace(rays, nRays);
     // Secondary Rays
     if(secondaryRaysDepth > 0) {
       currDepth = 0;
       VisionRay **secRays = new VisionRay *[nSecRays];
       buildSecondaryRays(rays, secRays, nRays);
+
+      // Mem Clean: Primary Rays
+      deleteRayArray(rays, w*sqrSamples);
+      delete [] rays;
+
       while(currDepth < secondaryRaysDepth) {
         nRays = nSecRays;
-        nSecRays = raytrace(secRays, nRays, NULL);
+        nSecRays = raytrace(secRays, nRays);
         if(nSecRays > 0) {
           rays = secRays;
           secRays = new VisionRay *[nSecRays];
           buildSecondaryRays(rays, secRays, nRays);
+
+          // Mem Clean: Old Secondary Rays
+          deleteRayArray(rays, nRays);
+          delete [] rays;
+
           currDepth++;
         }
         else {
+          // Mem Clean: Residual Rays
           deleteRayArray(secRays, nRays);
+          delete [] secRays;
+
           currDepth = secondaryRaysDepth;
         }
       }
     }
     else {
       deleteRayArray(rays, w*sqrSamples);
+      delete [] rays;
     }
-    nRays = w*samplesPerPixel;
+    nRays = w*sqrSamples;
     yDelta += delta;
   }
   clock_t end = clock();
-  std::cout << "Done!\nRender Time: ~" << diffclock(end, begin) << "s.\n";
+  std::cout << "Done! Render Time: ~" << diffclock(end, begin) << " seconds." <<
+  std::endl << "Writing output...\n";
+
+  // Saving Rendered Image
   outputImage(renderedImage, w, h, 1, "image.png");
+
+  // Saving Render ZBuffer Image
   if(saveZbuffer) {
     for(register int i = 0; i < res; i++) {
-      if(zBuffer[i] != std::numeric_limits<float>::infinity())
-        zBuffer[i] = zBuffer[i]/zBufferMaxDepth + 1;
+      if(zBuffer[i] != -std::numeric_limits<float>::infinity()) {
+        zBuffer[i] = -fabs(focusPoint - zBuffer[i]);
+        zBuffer[i] /= zBufferMaxDepth;
+        zBuffer[i] += 1.0;
+      }
     }
     outputImage(zBuffer, w, h, 0, "zbuffer.png");
   }
+
+  delete [] renderedImage;
+  delete [] zBuffer;
+
+  sceneLights.clear();
+  sceneMaterials.clear();
+  sceneObjects.clear();
+
+  std::cout << "Done! Goodbye!" << std::endl;
 }
 
 double Scene::intersectRay(Ray *r) {
@@ -321,6 +371,7 @@ int Scene::shadeRayIntersection(VisionRay *r) {
 
     for(i = sceneLights.begin(); i != sceneLights.end(); ++i) {
       lightSample = *i;
+
       blasSubstract(lightSample->pos, intersectionPoint, lVec);
       lDistance = blasNrm2(lVec);
       blasNormalize(lVec);
@@ -396,6 +447,15 @@ int Scene::shadeRayIntersection(VisionRay *r) {
   else {
     return 0;
   }
+}
+
+void Scene::rotateRay(Ray *r, double *mat) {
+  blasVecMatrixProd(r->direction, mat, r->direction);
+  blasNormalize(r->direction);
+}
+
+void Scene::getCameraMatrix(double *pos, double *dir, double *mat) {
+  blasBuildRotMat(pos, dir, mat);
 }
 
 double Scene::diffclock(clock_t clock1, clock_t clock2) {

@@ -33,6 +33,11 @@ void blasBuildRotMat(
     const double cosGamma, const double sinGamma,
     double *m);
 
+void blasBuildRotMat(
+    const double *pos,
+    const double *dir,
+    double *m);
+
 void blasVecMatrixProd(const double *x, const double *m, double *mx);
 
 float blasfastInvSqrt(float x);

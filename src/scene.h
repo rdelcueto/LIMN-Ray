@@ -47,7 +47,9 @@ public:
 
   double cameraPos[3];
   double cameraLookAt[3];
+  double cameraRollAngle;
   double focalLength;
+  double focusPoint;
 
   int samplesPerPixel;
   int secondaryRaysDepth;
@@ -62,13 +64,17 @@ public:
   MaterialList sceneMaterials;
   LightList sceneLights;
 
+  double rayTransformationMat[9];
+
   Scene();
   void render();
-  int raytrace(VisionRay **rays, int nRays, double *zbuffer);
+  int raytrace(VisionRay **rays, int nRays);
   void buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRays);
   void deleteRayArray(VisionRay **rays, int nRays);
   double intersectRay(Ray *r);
   int shadeRayIntersection(VisionRay *r);
+  void getCameraMatrix(double *pos, double *dir, double *rotMat);
+  void rotateRay(Ray *r, double *mat);
   void outputImage(double* image, int image_w, int image_h, int imageFlag, char* imageName);
   double diffclock(clock_t clock1, clock_t clock2);
 

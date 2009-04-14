@@ -45,6 +45,62 @@ void blasBuildRotMat(
 
 }
 
+void blasBuildRotMat(
+    const double *pos,
+    const double *dir,
+    double *m) {
+
+      double nV[3];     // Normalized direction vector.
+      double nV_YZ[3];  // LookAt YZ plane projection direction vector.
+      double nV_YZNrm;
+      double nV_XZ[3];  // LookAt YZ plane projection direction vector.
+      double nV_XZNrm;
+      double nV_XY[3];  // LookAt YZ plane projection direction vector.
+      double nV_XYNrm;
+
+      // Canonic Vectors
+      double X[3] = {0.0}; X[0] = 1.0;
+      double Y[3] = {0.0}; Y[1] = 1.0;
+      double Z[3] = {0.0}; Z[2] = 1.0;
+
+      blasSubstract(pos, dir, nV);
+      blasNormalize(nV);
+      blasInvert(nV, nV);
+
+      blasCopy(nV, nV_YZ);  nV_YZ[0] = 0.0;
+      blasCopy(nV, nV_XZ);  nV_XZ[1] = 0.0;
+      blasCopy(nV, nV_XY);  nV_XY[2] = 0.0;
+
+      nV_YZNrm = blasNrm2(nV_YZ);
+      nV_XZNrm = blasNrm2(nV_XZ);
+      nV_XYNrm = blasNrm2(nV_XY);
+
+      double cosA, sinA;
+      cosA = blasDot(nV_YZ, Z) * nV_YZNrm;
+      sinA = nV_YZ[1]/nV_YZNrm;
+
+      double cosB, sinB;
+      cosB = blasDot(nV_XZ, Z) * nV_XZNrm;
+      sinB = nV_XZ[0]/nV_XZNrm;
+
+    //  double cosC, sinC;
+    //  cosC = blasDot(nV_XZ, Z) * nV_XZNrm;
+    //  sinC = nV_XZ[0]/nV_XZNrm;
+
+      blasBuildRotMat(cosA, -sinA, cosB, sinB, 1, 0, m);
+//      std::cout <<
+//      rayTransformationMat[0] << ", " <<
+//      rayTransformationMat[1] << ", " <<
+//      rayTransformationMat[2] << ";" << '\n' <<
+//      rayTransformationMat[3] << ", " <<
+//      rayTransformationMat[4] << ", " <<
+//      rayTransformationMat[5] << ";" << '\n' <<
+//      rayTransformationMat[6] << ", " <<
+//      rayTransformationMat[7] << ", " <<
+//      rayTransformationMat[8] << '\n';
+
+}
+
 void blasVecMatrixProd(const double *x, const double *m, double *mx) {
   mx[0] = x[0]*m[0] + x[1]*m[3] + x[2]*m[6];
   mx[1] = x[0]*m[1] + x[1]*m[4] + x[2]*m[7];

@@ -27,7 +27,8 @@
 #include "scene.h"
 
 int main(int argc, char **argv) {
-  std::cout << "Limn-Ray v0.666" << std::endl;
+  std::cout << "Limn-Ray v0.666" << std::endl
+  << "Rendering...\n";
   Scene *s = new Scene();
   s->render();
 }
