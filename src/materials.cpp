@@ -4,6 +4,8 @@
  */
 
 /*
+ * Copyright (C) 2009 Rodrigo González del Cueto
+ *
  * This file is part of Limn-Ray.
  * Limn-Ray is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,5 +22,3 @@
  */
 
 #include "materials.h"
-
-typedef std::list<Material*> MaterialList;

@@ -4,6 +4,8 @@
  */
 
 /*
+ * Copyright (C) 2009 Rodrigo González del Cueto
+ *
  * This file is part of Limn-Ray.
  * Limn-Ray is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +25,8 @@
 #define PRIMITIVES_H_
 
 #include <list>
-#include "ray.h"
+#include "blas.h"
+#include "rays.h"
 #include "materials.h"
 
 class Primitive {
@@ -31,7 +34,6 @@ class Primitive {
 public:
 
   double pos[3];
-  double bbox[3];
   Material *material;
 
   Primitive() {}
@@ -39,7 +41,7 @@ public:
   virtual double intersect(Ray *r) { return 0; }
   virtual void normalAtP(const double *p, double *n) {}
   virtual void getPos(double *pos) {}
-  virtual void getBBox(double *bbox) {}
+
 };
 
 typedef std::list<Primitive*> PrimitiveList;

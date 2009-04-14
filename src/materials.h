@@ -4,6 +4,8 @@
  */
 
 /*
+ * Copyright (C) 2009 Rodrigo González del Cueto
+ *
  * This file is part of Limn-Ray.
  * Limn-Ray is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +21,8 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MATERIAL_H_
-#define MATERIAL_H_
+#ifndef MATERIALS_H_
+#define MATERIALS_H_
 
 #include <list>
 
@@ -28,49 +30,58 @@ class Material {
 
 public:
 
-  double color[4];
-  double reflection;
+  double color[3];
+  double opacy;
+  double filter;
+  double interior;
   double ambient;
+  double reflection;
   double diffuse;
   double specular;
   double specular_Hardness;
-  double interior;
 
   Material() {
-    color[0] = 1; color[1] = 1; color[2] = 1; color[3] = 1;
-    reflection = 0;
-    interior = 0;
-    ambient = 0;
-    diffuse = 0.9;
+    color[0] = 1; color[1] = 1; color[2] = 1;
+    opacy = 1.0;
+    filter = 0.0;
+    interior = 1.0;
+    ambient = 0.0;
+    reflection = 0.0;
+    diffuse = 1.0;
     specular = 1.0;
-    specular_Hardness = 16 * 4;
+    specular_Hardness = 32;
   }
 
-  Material(double red, double green, double blue, double opacy) {
-    color[0] = red; color[1] = green; color[2] = blue; color[3] = opacy;
-    reflection = 0;
-    interior = 0;
-    ambient = 0;
-    diffuse = 0.9;
+  Material(double red, double green, double blue,
+      double opacy_in, double filter_in) {
+    color[0] = 1; color[1] = 1; color[2] = 1;
+    opacy = opacy_in;
+    filter = filter_in;
+    interior = 1.0;
+    ambient = 0.0;
+    reflection = 0.0;
+    diffuse = 1.0;
     specular = 1.0;
-    specular_Hardness = 16 * 4;
+    specular_Hardness = 32;
   }
 
-  Material(double red, double green, double blue, double opacy,
-           double ambient_in, double diffuse_in,
-           double specular_in, double specHardness_in,
-           double reflection_in, double interior_in) {
-    color[0] = red; color[1] = green; color[2] = blue; color[3] = opacy;
-    reflection = reflection_in;
+  Material(double red, double green, double blue,
+      double opacy_in, double filter_in,
+      double ambient_in, double diffuse_in,
+      double specular_in, double specHardness_in,
+      double reflection_in, double interior_in) {
+    color[0] = red; color[1] = green; color[2] = blue;
+    opacy = opacy_in;
+    filter = filter_in;
     interior = interior_in;
     ambient = ambient_in;
+    reflection = reflection_in;
     diffuse = diffuse_in;
     specular = specular_in;
-    specular_Hardness = specHardness_in * 4;
+    specular_Hardness = specHardness_in;
   }
-
 };
 
 typedef std::list<Material*> MaterialList;
 
-#endif /* MATERIAL_H_ */
+#endif /* MATERIALS_H_ */

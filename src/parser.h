@@ -1,5 +1,5 @@
 /*
- * File: lights.h
+ * File: parser.h
  * Author: Rodrigo González del Cueto
  */
 
@@ -21,31 +21,7 @@
  * along with Limn-Ray.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIGHTS_H_
-#define LIGHTS_H_
+#ifndef PARSER_H_
+#define PARSER_H_
 
-#include <list>
-#include "blas.h"
-
-class Light {
-
-public:
-
-  double color[3];
-  double intensity;
-  double damping;
-
-  double pos[3];
-  int samples;
-  double *samplePos;
-
-  Light() {}
-
-  virtual int getSamples() {return 0;}
-  virtual void getPosI(int i, double *lpos) {};
-
-};
-
-typedef std::list<Light*> LightList;
-
-#endif /* LIGHTS_H_ */
+#endif /* PARSER_H_ */

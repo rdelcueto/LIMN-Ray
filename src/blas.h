@@ -4,6 +4,8 @@
  */
 
 /*
+ * Copyright (C) 2009 Rodrigo González del Cueto
+ *
  * This file is part of Limn-Ray.
  * Limn-Ray is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,179 +27,35 @@
 #include <iostream>
 #include <math.h>
 
-/* cublasIdamax()
- * Finds the smallest index of the maximum magnitude element of the
- * double-vector x.
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- */
+void blasBuildRotMat(
+    const double cosAlpha, const double sinAlpha,
+    const double cosBeta, const double sinBeta,
+    const double cosGamma, const double sinGamma,
+    double *m);
 
+void blasVecMatrixProd(const double *x, const double *m, double *mx);
 
-int blasIdamax(int n, const double *x, int incx);
+float blasfastInvSqrt(float x);
 
-/* cublasIdamin()
- * Finds the smallest index of the minimum magnitude element of the
- * double-vector x.
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- */
+void blasAdd(const double *x, const double *y, double *z);
 
-int blasIdamin(int n, const double *x, int incx);
+void blasSubstract(const double *x, const double *y, double *z);
 
-/* cublasDasum()
- * Computes the sum of the absolute values of the elements of double precision of the double-vector x.
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- */
+double blasDot(const double *x, const double *y);
 
-double blasDasum(int n, const double *x, int incx);
+void blasCross(const double *x, const double *y, double *z);
 
-/* blasDaxpy()
- * Multiplies double-precision vector x by double-presicion vector scalar alpha
- * and adds the result to double-precision vector y; That is, it overwrites
- * double-precision y with double-precision alpha * x + y.
- *
- * alpha Double-precision scalar multiplier.
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- * y Double-precision vector with n elements.
- * incy Storage spacing between elements of y.
- */
+void blasCopy(const double *x, double *y);
 
-void blasDaxpy(int n, double alpha,
-               const double *x, int incx,
-               double *y, int incy);
+void blasScale(const double *x, register const double k, double *kx);
 
-/* blasDcopy()
- * Copies the double precision vector x to the double-precision vector y.
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- * y Double-precision vector with n elements.
- * incy Storage spacing between elements of y.
- */
+void blasInvert(const double *x, double *invx);
 
-void blasDcopy(int n, const double *x, int incx,
-               double *y, int incy);
+void blasNormalize(double *x);
 
-void blas3Dcopy(const double *x, double *y);
+void blasFastNormalize(double *x);
 
-/* blasFast3dDot()
- * Computes the dot product of two double-precision 3D vectors.
- */
-
-double blas3dDot(const double *x, const double *y);
-
-/* blasDdot()
- * Computes the dot product of two double-precision vectors.
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- * y Double-precision vector with n elements.
- * incy Storage spacing between elements of y.
- */
-
-double blasDdot(int n, const double *x, int incx,
-               const double *y, int incy);
-
-/* blasDnrm2()
- * Computes the Euclidean norm of the double-precision n-vector x.
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- */
-
-double blasDnrm2(int n, const double *x, int incx);
-
-/* cublasDrot()
- * Multiplies a 2x2 matrix [dc,ds;-ds,dc] with 2 x n matrix [x^t; y^t].
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- * y Double-precision vector with n elements.
- * incy Storage spacing between elements of y.
- */
-
-void blasDrot(int n, double *x, int incx, double *y, int incy,
-               double dc, double ds);
-
-/* blasDscal()
- * Multiplies double-precision vector x by double-presicion vector scalar alpha
- *
- * alpha Double-precision scalar multiplier.
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- */
-
-void blasDscal(int n, double alpha,
-               double *x, int incx);
-
-/* blasDswap()
- * Interchanges double-precision vector x with double-presicion vector y.
- *
- * n Number of elements in input vector.
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- * y Double-precision vector with n elements.
- * incy Storage spacing between elements of y.
- */
-
-void blasDswap(int n,
-               double *x, int incx,
-               double *y, int incy);
-
-void blas3DNormalize(double *x);
-
-void blasNormalize(int n, double *x, int incx);
-
-void blas3dAddXY(const double *x,
-                 const double *y,
-                 double *z);
-
-void blasAddXY(int n,
-                const double *x,
-                const double *y,
-                double *z);
-
-void blasSubstractXY(int n, const double *x,
-                       const double *y,
-                       double *z);
-
-void blas3dSubstractXY(const double *x,
-                       const double *y,
-                       double *z);
-
-void blasInvert(int n, const double *x, double *y);
-void blas3DInvert(const double *x, double *y);
-
-/* blasCrossProd()
- * Computes the cross product of a double-precision vector x of size 3 with a
- * double-presicion vector y of size 3.
- *
- * x Double-precision vector with n elements.
- * incx Storage spacing between elements of x.
- * y Double-precision vector with n elements.
- * incy Storage spacing between elements of y.
- */
-
-void blasCrossProd(const double *x, int incx,
-                   const double *y, int incy,
-                   double *z, int incz);
-/*
- * Test Suite
- */
+double blasNrm2(const double *x);
 
 int testBlas();
 
