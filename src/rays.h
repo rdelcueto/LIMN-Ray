@@ -24,8 +24,8 @@
 #ifndef RAYS_H_
 #define RAYS_H_
 
-#define NRM_EPS 0.000001
-#define DIR_EPS 0.0001
+#define NRM_EPS 0.00001
+#define DIR_EPS 0.001
 #define COLOR_EPS 0.01
 
 #include <limits>

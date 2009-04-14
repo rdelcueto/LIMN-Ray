@@ -52,3 +52,104 @@ public:
   }
 
 };
+
+class AreaLight : public Light {
+public:
+
+  int height;
+  int width;
+  int samples;
+  double *samplesPos;
+  double dir[3];
+
+  AreaLight() {
+
+    int hcenter;
+    int wcenter;
+    int gridHSize;
+    int gridWSize;
+    int hdelta;
+    int wdelta;
+    int sampleDensity;
+
+    height = 4;
+    width = 4;
+    hcenter = height/2;
+    wcenter = width/2;
+    gridHSize = 4;
+    gridWSize = 4;
+    hdelta = height/gridHSize;
+    wdelta = width/gridWSize;
+    sampleDensity = 1;
+    samples = gridHSize*gridWSize*sampleDensity;
+
+    pos[0] = 0.0; pos[1] = 25.0; pos[2] = 0.0;
+    dir[0] = 0.0; dir[1] = -1.0; dir[2] = 0.0;
+    color[0] = color[1] = color[2] = 1.0;
+    intensity = 5/samples;
+    damping = 1.0;
+
+    samplePos = new double[samples*3];
+
+    for(int i = 0; i < samples*3; i+=3) {
+      samplePos[i] = (i%width)*wdelta*(rand() / (double(RAND_MAX)*2)) - wcenter;
+      samplePos[i+1] = 0;
+      samplePos[i+2] = (i/width)*hdelta*(rand() / (double(RAND_MAX)*2)) - hcenter;
+      blasAdd(pos, samplePos+i, samplePos+i);
+    }
+
+  }
+
+  AreaLight(
+    int h, int w, int gridHeight, int gridWidth, int sampleDensity_in,
+    double posx, double posy, double posz,
+    double colorR, double colorG, double colorB,
+    double i, double d) {
+
+    int hcenter;
+    int wcenter;
+    int gridHSize;
+    int gridWSize;
+    int hdelta;
+    int wdelta;
+    int sampleDensity;
+
+    height = h;
+    width = w;
+    hcenter = h/2;
+    wcenter = w/2;
+    gridHSize = gridHeight;
+    gridWSize = gridWidth;
+    hdelta = height/gridHSize;
+    wdelta = width/gridWSize;
+    sampleDensity = sampleDensity_in;
+    samples = gridHSize*gridWSize*sampleDensity;
+
+    dir[0] = 0.0; dir[1] = -1.0; dir[2] = 0.0;
+    pos[0] = posx; pos[1] = posy; pos[2] = posz;
+
+    color[0] = colorR; color[1] = colorG; color[2] = colorB;
+    intensity = i/samples;
+    damping = d;
+
+    samplePos = new double[samples*3];
+
+    for(int i = 0; i < samples*3; i+=3) {
+      samplePos[i] = (i%width)*wdelta*(rand() / (double(RAND_MAX)*2)) - wcenter;
+      samplePos[i+1] = 0;
+      samplePos[i+2] = (i/width)*hdelta*(rand() / (double(RAND_MAX)*2)) - hcenter;
+      blasAdd(pos, samplePos+i, samplePos+i);
+    }
+  }
+
+  ~AreaLight() {delete [] samplePos;}
+
+  int getSamples() {
+    return samples;
+  }
+
+  void getPosI(int i, double *lpos) {
+    blasCopy(samplePos+i*3, lpos);
+  }
+};
+

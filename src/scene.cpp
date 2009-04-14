@@ -28,11 +28,11 @@ Scene::Scene() {
   image_height = 768;
   res = image_height*image_width;
 
-  cameraPos[0] = 0; cameraPos[1] = 0; cameraPos[2] = 0;
-  cameraLookAt[0] = 0; cameraLookAt[1] = 0; cameraLookAt[2] = 1;
+  cameraPos[0] = 10; cameraPos[1] = 10; cameraPos[2] = 10;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 5; cameraLookAt[2] = 100;
   cameraRollAngle = 0;
 
-  focalLength = 30;
+  focalLength = 50;
   focusPoint = 100;
   zBufferMaxDepth = 128;
   saveZbuffer = 1;
@@ -43,32 +43,31 @@ Scene::Scene() {
 
 // Hardcoded Scene
 
-  sceneLights.push_back(new Omnidirectional(0, 100, 100, 1, 1, 1, 10, 1));
-//  sceneLights.push_back(new Omnidirectional(-7.07, 75, 100, 1, 0.6, 0.6, 10, 2));
-//  sceneLights.push_back(new Omnidirectional(7.07, 75, 100, 0.6, 0.6, 1, 10, 2));
-//  sceneLights.push_back(new Omnidirectional(0, 75, 107.07, 0.6, 1, 0.6, 10, 2));
-
-//  sceneLights.push_back(new AreaLight(10, 10, 4, 4, 1, 0, 0, 100, 1, 1, 1, 5, 1));
+//  sceneLights.push_back(new AreaLight(8, 8, 1, 1, 4, 0, 30, 100, 1, 1, 1, 10, 1));
+  sceneLights.push_back(new Omnidirectional(-8.66, 10, 0, 1, 0, 0, 5, 1));
+  sceneLights.push_back(new Omnidirectional(8.66, 10, 0, 0, 1, 0, 5, 1));
+  sceneLights.push_back(new Omnidirectional(0, 18.66, 0, 0, 0, 1, 5, 1));
 
   sceneMaterials.push_back(new Material(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
   sceneMaterials.push_back(new Material(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
   sceneMaterials.push_back(new Material(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(1.0, 0.0, 0.0, 0.0, 0.2, 0, 0, 0.666, 16, 0.5, 1.05));
-  sceneMaterials.push_back(new Material(0.333, 0.333, 0.333, 1.0, 0.0, 0.0, 0.25, 0.5, 16, 0.666, 1.0));
+  sceneMaterials.push_back(new Material(0.1, 0.1, 0.1, 0.1, 0.0, 0, 0, 0.666, 16, 0.666, 1.05));
+  sceneMaterials.push_back(new Material(0.333, 0.333, 0.333, 1.0, 0.0, 0.1, 0.333, 0.1, 8, 0.5, 1.0));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
-//  sceneObjects.push_back(new Sphere(0, 0, 50, 10, *mi));
-  sceneObjects.push_back(new Sphere(-8.66, 8.66, 100, 6, *mi));
+  sceneObjects.push_back(new Sphere(-8.66, 5, 100, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(8.66, 8.66, 100, 6, *mi));
+  sceneObjects.push_back(new Sphere(8.66, 5, 100, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, -5, 100, 6, *mi));
+  sceneObjects.push_back(new Sphere(0, 18.66, 105, 5, *mi));
   mi++;
-//  sceneObjects.push_back(new Sphere(0, 5, 100, 25, *mi));
+//  sceneObjects.push_back(new Sphere(0, 15, 100, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Plane(0, -25, 0, 0, 1, 0, *mi));
-
+  sceneObjects.push_back(new Plane(-25, 0, 0, 1, 0, 0, *mi));
+  sceneObjects.push_back(new Plane(25, 0, 0, -1, 0, 0, *mi));
+  sceneObjects.push_back(new Plane(50, 0, 0, 0, -1, 0, *mi));
+  sceneObjects.push_back(new Plane(0, 0, 0, 0, 1, 0, *mi));
 }
 
 void Scene::deleteRayArray(VisionRay **rays, int nRays) {
@@ -366,81 +365,90 @@ int Scene::shadeRayIntersection(VisionRay *r) {
     // |d| = (hdotn)n-h Specular Phong Reformulation
     double d[3];
 
-    Light *lightSample;
+    int lSamples;
+    double samplePos[3] = {0.0};
+    Light *lightSource;
     LightList::iterator i;
 
     for(i = sceneLights.begin(); i != sceneLights.end(); ++i) {
-      lightSample = *i;
 
-      blasSubstract(lightSample->pos, intersectionPoint, lVec);
-      lDistance = blasNrm2(lVec);
-      blasNormalize(lVec);
+      int currSample = 0;
+      lightSource = *i;
+      lSamples = lightSource->getSamples();
 
-      ShadowRay *shadowRay = NULL;
-      double shadowLight = 1.0;
-//      double shadowColors[3] = {1.0};
+      while (currSample < lSamples) {
+        lightSource->getPosI(currSample, samplePos);
+        blasSubstract(samplePos, intersectionPoint, lVec);
+        lDistance = blasNrm2(lVec);
+        blasNormalize(lVec);
 
-      if(shadows && m->opacy != 0) {
-        shadowRay = new ShadowRay(intersectionPoint, lVec);
-        double rayLight = 0;
+        ShadowRay *shadowRay = NULL;
+        double shadowLight = 1.0;
+  //      double shadowColors[3] = {1.0};
 
-        do {
-          shadowRay->intersectionT = std::numeric_limits<double>::infinity();
-          rayLight = intersectRay(shadowRay);
-          if(shadowRay->sumTs < lDistance) {
-            shadowLight -= rayLight;
-            shadowRay->nextStep();
-          }
-          else break;
-          }
-        while(shadowRay->intersectionT != std::numeric_limits<double>::infinity()
-            && shadowLight > 0);
-      }
+        if(shadows && m->opacy != 0) {
+          shadowRay = new ShadowRay(intersectionPoint, lVec);
+          double rayLight = 0;
 
-      lDistance += r->sumTs;
-
-      double luminosity = lightSample->intensity*LIGHT_SCALE*shadowLight;
-      luminosity /= lDistance*lDistance*lightSample->damping;
-
-      // Diffuse
-      if(m->diffuse != 0)
-        phongD = blasDot(lVec, intersectionNormal)*m->diffuse*luminosity;
-      else phongD = 0;
-
-      // Specular
-      if(m->specular != 0) {
-        blasAdd(lVec, v, h); // LightPos + EyePos = Halfway = h
-        blasScale(h, 0.5, h); // h = Halfway / 2
-        blasCopy(intersectionPoint, d);
-        blasScale(d, blasDot(h, d), d); // (NdotNormAtP)NormAtP
-        blasSubstract(d, h, d);
-        phongS = (m->specular_Hardness/2)*blasDot(d, d);
-
-        if (phongS > 1) phongS = 0;
-        else {
-          phongS = (1-phongS)/2;
-          phongS *= phongS;
+          do {
+            shadowRay->intersectionT = std::numeric_limits<double>::infinity();
+            rayLight = intersectRay(shadowRay);
+            if(shadowRay->sumTs < lDistance) {
+              shadowLight -= rayLight;
+              shadowRay->nextStep();
+            }
+            else break;
+            }
+          while(shadowRay->intersectionT != std::numeric_limits<double>::infinity()
+              && shadowLight > 0);
         }
+
+        lDistance += r->sumTs;
+
+        double luminosity = lightSource->intensity*LIGHT_SCALE*shadowLight;
+        luminosity /= lDistance*lDistance*lightSource->damping;
+
+        // Diffuse
+        if(m->diffuse != 0)
+          phongD = blasDot(lVec, intersectionNormal)*m->diffuse*luminosity;
+        else phongD = 0;
+
+        // Specular
+        if(m->specular != 0) {
+          blasAdd(lVec, v, h); // LightPos + EyePos = Halfway = h
+          blasScale(h, 0.5, h); // h = Halfway / 2
+          blasCopy(intersectionPoint, d);
+          blasScale(d, blasDot(h, d), d); // (NdotNormAtP)NormAtP
+          blasSubstract(d, h, d);
+          phongS = (m->specular_Hardness/2)*blasDot(d, d);
+
+          if (phongS > 1) phongS = 0;
+          else {
+            phongS = (1-phongS)/2;
+            phongS *= phongS;
+          }
+        }
+        else phongS = 0;
+
+        if(phongD < 0) phongD = 0;
+        if(phongS < 0) phongS = 0;
+
+        double pixelBaseColor[3];
+
+        pixelBaseColor[0] = m->color[0] * m->opacy;
+        pixelBaseColor[1] = m->color[1] * m->opacy;
+        pixelBaseColor[2] = m->color[2] * m->opacy;
+
+        r->pixel[0] += lightSource->color[0] * r->weight[0] *
+            (pixelBaseColor[0] * (phongD + m->ambient) + phongS);
+        r->pixel[1] += lightSource->color[1] * r->weight[1] *
+            (pixelBaseColor[1] * (phongD + m->ambient) + phongS);
+        r->pixel[2] += lightSource->color[2] * r->weight[2] *
+            (pixelBaseColor[2] * (phongD + m->ambient) + phongS);
+
+        currSample++;
+        if(shadows) delete shadowRay;
       }
-      else phongS = 0;
-
-      if(phongD < 0) phongD = 0;
-      if(phongS < 0) phongS = 0;
-
-      double pixelBaseColor[3];
-
-      pixelBaseColor[0] = m->color[0] * m->opacy;
-      pixelBaseColor[1] = m->color[1] * m->opacy;
-      pixelBaseColor[2] = m->color[2] * m->opacy;
-
-      r->pixel[0] += lightSample->color[0] * r->weight[0] *
-          (pixelBaseColor[0] * (phongD + m->ambient) + phongS);
-      r->pixel[1] += lightSample->color[1] * r->weight[1] *
-          (pixelBaseColor[1] * (phongD + m->ambient) + phongS);
-      r->pixel[2] += lightSample->color[2] * r->weight[2] *
-          (pixelBaseColor[2] * (phongD + m->ambient) + phongS);
-
-      if(shadows) delete shadowRay;
     }
     return secRays;
   }
