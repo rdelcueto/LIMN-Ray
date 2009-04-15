@@ -24,12 +24,12 @@
 #include "scene.h"
 
 Scene::Scene() {
-  image_width = 1152;
-  image_height = 768;
+  image_width = 720;
+  image_height = 480;
   res = image_height*image_width;
 
-  cameraPos[0] = 10; cameraPos[1] = 10; cameraPos[2] = 10;
-  cameraLookAt[0] = 0; cameraLookAt[1] = 5; cameraLookAt[2] = 100;
+  cameraPos[0] = 0; cameraPos[1] = 0; cameraPos[2] = 0;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 0; cameraLookAt[2] = 1;
   cameraRollAngle = 0;
 
   focalLength = 50;
@@ -37,37 +37,27 @@ Scene::Scene() {
   zBufferMaxDepth = 128;
   saveZbuffer = 1;
 
-  samplesPerPixel = 1;
-  secondaryRaysDepth = 1;
+  samplesPerPixel = 2;
+  secondaryRaysDepth = 8;
   shadows = 1;
 
 // Hardcoded Scene
 
-//  sceneLights.push_back(new AreaLight(8, 8, 1, 1, 4, 0, 30, 100, 1, 1, 1, 10, 1));
-  sceneLights.push_back(new Omnidirectional(-8.66, 10, 0, 1, 0, 0, 5, 1));
-  sceneLights.push_back(new Omnidirectional(8.66, 10, 0, 0, 1, 0, 5, 1));
-  sceneLights.push_back(new Omnidirectional(0, 18.66, 0, 0, 0, 1, 5, 1));
+  sceneLights.push_back(new AreaLight(16, 16, 8, 8, 1, 0, 50, 50, 1, 1, 1, 5, 1));
 
   sceneMaterials.push_back(new Material(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
   sceneMaterials.push_back(new Material(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.1, 0.1, 0.1, 0.1, 0.0, 0, 0, 0.666, 16, 0.666, 1.05));
-  sceneMaterials.push_back(new Material(0.333, 0.333, 0.333, 1.0, 0.0, 0.1, 0.333, 0.1, 8, 0.5, 1.0));
-
+  sceneMaterials.push_back(new Material(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0.1, 0.1, 0.1, 1.0, 0.0, 0.0, 0.1, 0.0, 16, 0.0, 1.0));
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneObjects.push_back(new Sphere(-8.66, 5, 100, 5, *mi));
+  sceneObjects.push_back(new Sphere(-10, 0, 50, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(8.66, 5, 100, 5, *mi));
+  sceneObjects.push_back(new Sphere(0, 0, 50, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 18.66, 105, 5, *mi));
+  sceneObjects.push_back(new Sphere(10, 0, 50, 5, *mi));
   mi++;
-//  sceneObjects.push_back(new Sphere(0, 15, 100, 5, *mi));
-  mi++;
-  sceneObjects.push_back(new Plane(-25, 0, 0, 1, 0, 0, *mi));
-  sceneObjects.push_back(new Plane(25, 0, 0, -1, 0, 0, *mi));
-  sceneObjects.push_back(new Plane(50, 0, 0, 0, -1, 0, *mi));
-  sceneObjects.push_back(new Plane(0, 0, 0, 0, 1, 0, *mi));
+  sceneObjects.push_back(new Plane(0, -10, 0, 0, 1, 0, *mi));
 }
 
 void Scene::deleteRayArray(VisionRay **rays, int nRays) {
@@ -112,9 +102,11 @@ void Scene::outputImage(double* image,
 int Scene::raytrace(VisionRay **rays, int nRays) {
 
   double *z;
-  int nSecRays = 0;
-
-  for(int i = 0; i < nRays; i++) {
+  int i, nSecRays;
+  nSecRays = 0;
+  #pragma omp parallel for schedule(guided, 32) default(none) \
+  shared(rays, nRays) private(i,z) reduction(+:nSecRays)
+  for(i = 0; i < nRays; i++) {
     intersectRay(rays[i]);
     if(std::numeric_limits<float>::infinity() != rays[i]->intersectionT) {
       if(saveZbuffer && rays[i]->zBufferPixel != NULL) {
@@ -145,6 +137,7 @@ void Scene::buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRa
 
 void Scene::render() {
 
+//  omp_set_num_threads(1);
   getCameraMatrix(cameraPos, cameraLookAt, rayTransformationMat);
 
   renderedImage = new double[res*3];
@@ -159,42 +152,47 @@ void Scene::render() {
     zBuffer[i] = -std::numeric_limits<double>::infinity();
 
   clock_t begin = clock();
-  int w, h, imagePixel, zbufferPixel, k;
-
-  w = image_width;
-  h = image_height;
 
   // Projection Plane Pixel Grid
-  double aspect = (h*1.0) / w;
-  double delta = 3.6/w;
-  double xDelta = -1.8;
-  double yDelta = -1.8*aspect;
+  double aspect = (image_height*1.0) / image_width;
+  double delta = 3.6/image_width;
 
   // Pixel
   int sqrSamples = samplesPerPixel*samplesPerPixel;
+  int rowLength = image_width*sqrSamples;
   double sDelta = delta/(samplesPerPixel + 1);
   double sOffset = delta/2;
-  double xsDelta;
-  double ysDelta;
 
   double pos[3];
   pos[0] = pos[1] = 0.0; pos[2] = -focalLength/10;
 
-  int nRays = w*sqrSamples;
-  int nSecRays = 0;
-  int currDepth = 0;
+  int x, y, k, nRays, nSecRays, currDepth, zbufferPixel, imagePixel;
+  // Rows
   VisionRay **rays;
 
-  // Rows
-  for(int y = 0; y < h; y++) {
+  #pragma omp parallel for schedule(runtime) \
+  private(x, y, k, nRays, nSecRays, currDepth, zbufferPixel, imagePixel, rays)
+  for(y = 0; y < image_height; y++) {
+
+//    std::cout << "Thread #" << omp_get_thread_num() <<
+//    " crunching row: " << y << std::endl;
+
+    nRays = rowLength;
+    nSecRays = 0;
+    currDepth = 0;
     k = 0;
+
     rays = new VisionRay *[nRays*sqrSamples];
-    xDelta = -1.8;
-    zbufferPixel = y*w;
+
+    double xDelta = -1.8;
+    double yDelta = xDelta*aspect + delta*y;
+    double xsDelta, ysDelta;
+
+    zbufferPixel = y*image_width;
     imagePixel = zbufferPixel*3;
 
     // Row Columns
-    for(int x = 0; x < w; x++) {
+    for(x = 0; x < image_width; x++) {
       // Multisampling
       if(samplesPerPixel > 1) {
         ysDelta = sDelta - sOffset;
@@ -234,7 +232,7 @@ void Scene::render() {
       buildSecondaryRays(rays, secRays, nRays);
 
       // Mem Clean: Primary Rays
-      deleteRayArray(rays, w*sqrSamples);
+      deleteRayArray(rays, image_width*sqrSamples);
       delete [] rays;
 
       while(currDepth < secondaryRaysDepth) {
@@ -261,10 +259,9 @@ void Scene::render() {
       }
     }
     else {
-      deleteRayArray(rays, w*sqrSamples);
+      deleteRayArray(rays, image_width*sqrSamples);
       delete [] rays;
     }
-    nRays = w*sqrSamples;
     yDelta += delta;
   }
   clock_t end = clock();
@@ -272,7 +269,7 @@ void Scene::render() {
   std::endl << "Writing output...\n";
 
   // Saving Rendered Image
-  outputImage(renderedImage, w, h, 1, "image.png");
+  outputImage(renderedImage, image_width, image_height, 1, "image.png");
 
   // Saving Render ZBuffer Image
   if(saveZbuffer) {
@@ -283,7 +280,7 @@ void Scene::render() {
         zBuffer[i] += 1.0;
       }
     }
-    outputImage(zBuffer, w, h, 0, "zbuffer.png");
+    outputImage(zBuffer, image_width, image_height, 0, "zbuffer.png");
   }
 
   delete [] renderedImage;
