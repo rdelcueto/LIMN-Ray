@@ -64,38 +64,45 @@ public:
 
   AreaLight() {
 
+    int h = 10;
+    int w = 10;
+    int gridHeight = 5;
+    int gridWidth = 5;
+    int sampleDensity = 1;
+    double posx = 0; double posy = 25; double posz = 0;
+    double colorR = 1; double colorG = 1; double colorB = 1;
+
     int hcenter;
     int wcenter;
-    int gridHSize;
-    int gridWSize;
     int hdelta;
     int wdelta;
-    int sampleDensity;
 
-    height = 4;
-    width = 4;
-    hcenter = height/2;
-    wcenter = width/2;
-    gridHSize = 4;
-    gridWSize = 4;
-    hdelta = height/gridHSize;
-    wdelta = width/gridWSize;
-    sampleDensity = 1;
-    samples = gridHSize*gridWSize*sampleDensity;
+    hcenter = h/2;
+    wcenter = w/2;
+    hdelta = h/gridHeight;
+    wdelta = w/gridWidth;
+    samples = gridHeight*gridWidth*sampleDensity;
 
-    pos[0] = 0.0; pos[1] = 25.0; pos[2] = 0.0;
     dir[0] = 0.0; dir[1] = -1.0; dir[2] = 0.0;
-    color[0] = color[1] = color[2] = 1.0;
-    intensity = 5/samples;
-    damping = 1.0;
+    pos[0] = posx; pos[1] = posy; pos[2] = posz;
+
+    color[0] = colorR; color[1] = colorG; color[2] = colorB;
+    intensity = 10/samples;
+    damping = 1;
 
     samplePos = new double[samples*3];
 
-    for(int i = 0; i < samples*3; i+=3) {
-      samplePos[i] = (i%width)*wdelta*(rand() / (double(RAND_MAX)*2)) - wcenter;
-      samplePos[i+1] = 0;
-      samplePos[i+2] = (i/width)*hdelta*(rand() / (double(RAND_MAX)*2)) - hcenter;
-      blasAdd(pos, samplePos+i, samplePos+i);
+    int k = 0;
+    for(int y = 0; y < gridHeight; y++) {
+      for(int x = 0; x < gridWidth; x++) {
+        for(int i = 0; i < samples; i++) {
+          samplePos[k] = - wcenter + (rand() / (double(RAND_MAX))) - 0.5 + x*wdelta;
+          samplePos[k+1] = 0;
+          samplePos[k+2] = - hcenter + (rand() / (double(RAND_MAX))) - 0.5 + y*hdelta;
+          blasAdd(pos, samplePos+k, samplePos+k);
+          k+=3;
+        }
+      }
     }
 
   }
@@ -103,29 +110,25 @@ public:
   AreaLight(
     int h, int w, int gridHeight, int gridWidth, int sampleDensity_in,
     double posx, double posy, double posz,
+    double nrmx, double nrmy, double nrmz,
     double colorR, double colorG, double colorB,
     double i, double d) {
 
     int hcenter;
     int wcenter;
-    int gridHSize;
-    int gridWSize;
     int hdelta;
     int wdelta;
     int sampleDensity;
+    double mat[9];
 
-    height = h;
-    width = w;
     hcenter = h/2;
     wcenter = w/2;
-    gridHSize = gridHeight;
-    gridWSize = gridWidth;
-    hdelta = height/gridHSize;
-    wdelta = width/gridWSize;
+    hdelta = h/gridHeight;
+    wdelta = w/gridWidth;
     sampleDensity = sampleDensity_in;
-    samples = gridHSize*gridWSize*sampleDensity;
+    samples = gridHeight*gridWidth*sampleDensity;
 
-    dir[0] = 0.0; dir[1] = -1.0; dir[2] = 0.0;
+    dir[0] = nrmx; dir[1] = nrmy; dir[2] = nrmz;
     pos[0] = posx; pos[1] = posy; pos[2] = posz;
 
     color[0] = colorR; color[1] = colorG; color[2] = colorB;
@@ -133,12 +136,20 @@ public:
     damping = d;
 
     samplePos = new double[samples*3];
+//    blasBuildRotMat(pos, dir, mat);
 
-    for(int i = 0; i < samples*3; i+=3) {
-      samplePos[i] = (i%width)*wdelta*(rand() / (double(RAND_MAX)*2)) - wcenter;
-      samplePos[i+1] = 0;
-      samplePos[i+2] = (i/width)*hdelta*(rand() / (double(RAND_MAX)*2)) - hcenter;
-      blasAdd(pos, samplePos+i, samplePos+i);
+    int k = 0;
+    for(int y = 0; y < gridHeight; y++) {
+      for(int x = 0; x < gridWidth; x++) {
+        for(int z = 0; z < sampleDensity; z++) {
+          samplePos[k] = - wcenter + (rand() / (double(RAND_MAX))) - 0.5 + x*wdelta;
+          samplePos[k+1] = 0;
+          samplePos[k+2] = - hcenter + (rand() / (double(RAND_MAX))) - 0.5 + y*hdelta;
+          blasAdd(pos, samplePos+k, samplePos+k);
+//          blasVecMatrixProd(samplePos+k, mat, samplePos+k);
+          k+=3;
+        }
+      }
     }
   }
 

@@ -25,6 +25,7 @@
 #ifndef SCENE_H_
 #define SCENE_H_
 
+#define INF_LIMIT std::numeric_limits<double>::infinity()
 #define INTERSECT_EPSILON 0.001
 #define LIGHT_SCALE 10000
 

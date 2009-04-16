@@ -66,26 +66,28 @@ public:
 
       double nRatio = r->intersectionMaterial->interior;
 
-      if(cosT1 < 0)
-        nRatio = 1/nRatio;
-      else
-        blasInvert(n, n);
-
-      double sinT2 = nRatio*nRatio * (1 - cosT1*cosT1);
-
-      if(sinT2 > 1) {
-        // Total Reflection
-        weight[0] = weight[1] = weight[2] = 0.0;
-      }
-      else {
-        double cosT2 = sqrt(1 - sinT2);
-        blasScale(direction, nRatio, direction);
-        if(cosT1 > 0)
-          blasScale(n, nRatio*cosT1 - cosT2, n);
+      if(nRatio != 1.0) {
+        if(cosT1 < 0)
+          nRatio = 1/nRatio;
         else
-          blasScale(n, nRatio*cosT1 + cosT2, n);
-        blasSubstract(direction, n, direction);
-        blasNormalize(direction);
+          blasInvert(n, n);
+
+        double sinT2 = nRatio*nRatio * (1 - cosT1*cosT1);
+
+        if(sinT2 > 1) {
+          // Total Reflection
+          weight[0] = weight[1] = weight[2] = 0.0;
+        }
+        else {
+          double cosT2 = sqrt(1 - sinT2);
+          blasScale(direction, nRatio, direction);
+          if(cosT1 > 0)
+            blasScale(n, nRatio*cosT1 - cosT2, n);
+          else
+            blasScale(n, nRatio*cosT1 + cosT2, n);
+          blasSubstract(direction, n, direction);
+          blasNormalize(direction);
+        }
       }
 
       weight[0] = r->weight[0] * (alpha - filter[0]);

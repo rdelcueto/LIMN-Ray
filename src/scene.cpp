@@ -24,40 +24,47 @@
 #include "scene.h"
 
 Scene::Scene() {
-  image_width = 720;
-  image_height = 480;
+  image_width = 1152;
+  image_height = 768;
   res = image_height*image_width;
 
   cameraPos[0] = 0; cameraPos[1] = 0; cameraPos[2] = 0;
-  cameraLookAt[0] = 0; cameraLookAt[1] = 0; cameraLookAt[2] = 1;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 10; cameraLookAt[2] = 100;
   cameraRollAngle = 0;
 
-  focalLength = 50;
+  focalLength = 30;
   focusPoint = 100;
   zBufferMaxDepth = 128;
   saveZbuffer = 1;
 
   samplesPerPixel = 2;
-  secondaryRaysDepth = 8;
+  secondaryRaysDepth = 6;
   shadows = 1;
 
 // Hardcoded Scene
 
-  sceneLights.push_back(new AreaLight(16, 16, 8, 8, 1, 0, 50, 50, 1, 1, 1, 5, 1));
+  sceneMaterials.push_back(new Material(1, 0, 0, 1.0, 0.0, 0.0, 0.3, 0.3, 16, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0, 0, 1, 1.0, 0.0, 0.0, 0.3, 0.3, 16, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0, 1, 0, 1.0, 0.0, 0.0, 0.3, 0.3, 16, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0.1, 0.1, 0.33, 0.2, 0.2, 0.0, 0.1, 0.5, 32, 0.33, 1.15));
+  sceneMaterials.push_back(new Material(0.2, 0.2, 0.2, 1.0, 0.0, 0.0, 0.1, 0.0, 1, 0.33, 1.0));
 
-  sceneMaterials.push_back(new Material(1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.33, 1, 8, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.1, 0.1, 0.1, 1.0, 0.0, 0.0, 0.1, 0.0, 16, 0.0, 1.0));
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneObjects.push_back(new Sphere(-10, 0, 50, 5, *mi));
+  sceneLights.push_back(new AreaLight(5, 5, 5, 5, 2, -17.3, 25, 90, 0, -1, 0, 1, 0.33, 0.33, 10, 1));
+  sceneLights.push_back(new AreaLight(5, 5, 5, 5, 2, 17.3, 25, 90, 0, -1, 0, 0.33, 1, 0.33, 10, 1));
+  sceneLights.push_back(new AreaLight(5, 5, 5, 5, 2, 0, 25, 110, 0, -1, 0, 0.33, 0.33, 1, 10, 1));
+
+  sceneObjects.push_back(new Sphere(-17.3, 0, 100, 10, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 0, 50, 5, *mi));
+  sceneObjects.push_back(new Sphere(17.3, 0, 100, 10, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(10, 0, 50, 5, *mi));
+  sceneObjects.push_back(new Sphere(0, 20, 100, 10, *mi));
+  mi++;
+  sceneObjects.push_back(new Sphere(0, 10, 90, 10, *mi));
   mi++;
   sceneObjects.push_back(new Plane(0, -10, 0, 0, 1, 0, *mi));
+
 }
 
 void Scene::deleteRayArray(VisionRay **rays, int nRays) {
@@ -66,7 +73,8 @@ void Scene::deleteRayArray(VisionRay **rays, int nRays) {
 }
 
 void Scene::outputImage(double* image,
-    int image_w, int image_h, int imageFlag, char* imageName) {
+    int image_w, int image_h,
+    int imageFlag, char* imageName) {
 
   int s = samplesPerPixel*samplesPerPixel;
   int k = 0;
@@ -104,11 +112,9 @@ int Scene::raytrace(VisionRay **rays, int nRays) {
   double *z;
   int i, nSecRays;
   nSecRays = 0;
-  #pragma omp parallel for schedule(guided, 32) default(none) \
-  shared(rays, nRays) private(i,z) reduction(+:nSecRays)
   for(i = 0; i < nRays; i++) {
     intersectRay(rays[i]);
-    if(std::numeric_limits<float>::infinity() != rays[i]->intersectionT) {
+    if(INF_LIMIT != rays[i]->intersectionT) {
       if(saveZbuffer && rays[i]->zBufferPixel != NULL) {
         z = rays[i]->zBufferPixel;
         z[0] = rays[i]->intersectionT;
@@ -137,7 +143,7 @@ void Scene::buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRa
 
 void Scene::render() {
 
-//  omp_set_num_threads(1);
+  omp_set_num_threads(1);
   getCameraMatrix(cameraPos, cameraLookAt, rayTransformationMat);
 
   renderedImage = new double[res*3];
@@ -149,7 +155,7 @@ void Scene::render() {
 
   // Initialize zBufferArray
   for(register int i = 0; i < res; i++)
-    zBuffer[i] = -std::numeric_limits<double>::infinity();
+    zBuffer[i] = -INF_LIMIT;
 
   clock_t begin = clock();
 
@@ -166,17 +172,18 @@ void Scene::render() {
   double pos[3];
   pos[0] = pos[1] = 0.0; pos[2] = -focalLength/10;
 
-  int x, y, k, nRays, nSecRays, currDepth, zbufferPixel, imagePixel;
+
   // Rows
   VisionRay **rays;
+  int x, y;
 
-  #pragma omp parallel for schedule(runtime) \
-  private(x, y, k, nRays, nSecRays, currDepth, zbufferPixel, imagePixel, rays)
+  #pragma omp parallel for schedule(runtime) default(shared) \
+  private(x, y, rays)
   for(y = 0; y < image_height; y++) {
+    std::cout << "                                                     " <<
+    "\rRendering: " << y*100/image_height << "% completed...";
 
-//    std::cout << "Thread #" << omp_get_thread_num() <<
-//    " crunching row: " << y << std::endl;
-
+    int k, nRays, nSecRays, currDepth, zbufferPixel, imagePixel;
     nRays = rowLength;
     nSecRays = 0;
     currDepth = 0;
@@ -265,8 +272,8 @@ void Scene::render() {
     yDelta += delta;
   }
   clock_t end = clock();
-  std::cout << "Done! Render Time: ~" << diffclock(end, begin) << " seconds." <<
-  std::endl << "Writing output...\n";
+  std::cout << "\rDone! Render Time: ~" << diffclock(end, begin) << " seconds." <<
+  std::endl << "Writing output...\r";
 
   // Saving Rendered Image
   outputImage(renderedImage, image_width, image_height, 1, "image.png");
@@ -323,8 +330,8 @@ double Scene::intersectRay(Ray *r) {
     return pMin->material->opacy;
   }
   else {
-    r->sumTs = std::numeric_limits<double>::infinity();
-    r->intersectionT = std::numeric_limits<double>::infinity();
+    r->sumTs = INF_LIMIT;
+    r->intersectionT = INF_LIMIT;
     return 0.0;
   }
 }
@@ -388,7 +395,7 @@ int Scene::shadeRayIntersection(VisionRay *r) {
           double rayLight = 0;
 
           do {
-            shadowRay->intersectionT = std::numeric_limits<double>::infinity();
+            shadowRay->intersectionT = INF_LIMIT;
             rayLight = intersectRay(shadowRay);
             if(shadowRay->sumTs < lDistance) {
               shadowLight -= rayLight;
@@ -396,7 +403,7 @@ int Scene::shadeRayIntersection(VisionRay *r) {
             }
             else break;
             }
-          while(shadowRay->intersectionT != std::numeric_limits<double>::infinity()
+          while(shadowRay->intersectionT != INF_LIMIT
               && shadowLight > 0);
         }
 
