@@ -24,17 +24,18 @@
 #include "scene.h"
 
 Scene::Scene() {
+
   image_width = 1152;
   image_height = 768;
   res = image_height*image_width;
 
-  cameraPos[0] = 0; cameraPos[1] = 0; cameraPos[2] = 0;
-  cameraLookAt[0] = 0; cameraLookAt[1] = 10; cameraLookAt[2] = 100;
+  cameraPos[0] = 50; cameraPos[1] = 100; cameraPos[2] = 0;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 20; cameraLookAt[2] = 100;
   cameraRollAngle = 0;
 
-  focalLength = 30;
+  focalLength = 100/10;
   focusPoint = 100;
-  zBufferMaxDepth = 128;
+  zBufferMaxDepth = 64;
   saveZbuffer = 1;
 
   samplesPerPixel = 2;
@@ -43,27 +44,29 @@ Scene::Scene() {
 
 // Hardcoded Scene
 
-  sceneMaterials.push_back(new Material(1, 0, 0, 1.0, 0.0, 0.0, 0.3, 0.3, 16, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0, 0, 1, 1.0, 0.0, 0.0, 0.3, 0.3, 16, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0, 1, 0, 1.0, 0.0, 0.0, 0.3, 0.3, 16, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.1, 0.1, 0.33, 0.2, 0.2, 0.0, 0.1, 0.5, 32, 0.33, 1.15));
-  sceneMaterials.push_back(new Material(0.2, 0.2, 0.2, 1.0, 0.0, 0.0, 0.1, 0.0, 1, 0.33, 1.0));
+  sceneMaterials.push_back(new Material(0.1, 0.1, 0.1, 1.0, 0.0, 0.0, 0.1, 0.9, 64, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0, 0.0, 0.6, 0.1, 0.8, 0.0, 0.2, 0.5, 32, 1.0, 0.95));
+  sceneMaterials.push_back(new Material(0.9, 0.9, 0.9, 1.0, 0.0, 0.0, 0.8, 1.0, 128, 0.66, 1.0));
+  sceneMaterials.push_back(new Material(0.0, 0.8, 0.0, 0.1, 0.9, 0.0, 0.8, 0.6, 128, 0.66, 1.5));
+  sceneMaterials.push_back(new Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 128, 0.66, 1.5));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneLights.push_back(new AreaLight(5, 5, 5, 5, 2, -17.3, 25, 90, 0, -1, 0, 1, 0.33, 0.33, 10, 1));
-  sceneLights.push_back(new AreaLight(5, 5, 5, 5, 2, 17.3, 25, 90, 0, -1, 0, 0.33, 1, 0.33, 10, 1));
-  sceneLights.push_back(new AreaLight(5, 5, 5, 5, 2, 0, 25, 110, 0, -1, 0, 0.33, 0.33, 1, 10, 1));
+  sceneLights.push_back(new AreaLight(6, 6, 3, 3, 1, -17.3, 25, 90, 0, -1, 0, 0.99, 0.77, 0.33, 1, 1));
+  sceneLights.push_back(new AreaLight(6, 6, 3, 3, 1, 17.3, 25, 90, 0, -1, 0, 0.95, 1, 0.33, 1, 1));
+  sceneLights.push_back(new AreaLight(6, 6, 3, 3, 1, 0, 25, 110, 0, -1, 0, 0.2, 0.77, 1, 1, 1));
 
-  sceneObjects.push_back(new Sphere(-17.3, 0, 100, 10, *mi));
+  sceneObjects.push_back(new Sphere(-8.33, 5, 100, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(17.3, 0, 100, 10, *mi));
+  sceneObjects.push_back(new Sphere(8.33, 5, 100, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 20, 100, 10, *mi));
+  sceneObjects.push_back(new Sphere(0, 5, 110, 5, *mi));
   mi++;
-  sceneObjects.push_back(new Sphere(0, 10, 90, 10, *mi));
+  sceneObjects.push_back(new Sphere(0, 15, 105, 5, *mi));
   mi++;
   sceneObjects.push_back(new Plane(0, -10, 0, 0, 1, 0, *mi));
+  sceneObjects.push_back(new Plane(0, 0, 135, 0, 0, -1, *mi));
+  sceneObjects.push_back(new Plane(-30, 0, 0, 1, 0, 0, *mi));
 
 }
 
@@ -144,7 +147,11 @@ void Scene::buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRa
 void Scene::render() {
 
   omp_set_num_threads(1);
-  getCameraMatrix(cameraPos, cameraLookAt, rayTransformationMat);
+
+  double lookAtDir[3];
+  blasSubstract(cameraLookAt, cameraPos, lookAtDir);
+  blasNormalize(lookAtDir);
+  blasBuildRotMatDir(lookAtDir, rayTransformationMat);
 
   renderedImage = new double[res*3];
   zBuffer = new double[res];
@@ -169,10 +176,6 @@ void Scene::render() {
   double sDelta = delta/(samplesPerPixel + 1);
   double sOffset = delta/2;
 
-  double pos[3];
-  pos[0] = pos[1] = 0.0; pos[2] = -focalLength/10;
-
-
   // Rows
   VisionRay **rays;
   int x, y;
@@ -194,6 +197,7 @@ void Scene::render() {
     double xDelta = -1.8;
     double yDelta = xDelta*aspect + delta*y;
     double xsDelta, ysDelta;
+    double lookAtRay[3];
 
     zbufferPixel = y*image_width;
     imagePixel = zbufferPixel*3;
@@ -207,10 +211,12 @@ void Scene::render() {
           xsDelta = sDelta - sOffset;
           for(int j = 0; j < samplesPerPixel; j++) {
             rays[k] = new VisionRay(
-                renderedImage+imagePixel, zBuffer+zbufferPixel, pos);
-            rays[k]->setLookAt(xDelta + xsDelta, yDelta + ysDelta, 0);
-            rotateRay(rays[k], rayTransformationMat);
-            blasAdd(rays[k]->position, cameraPos, rays[k]->position);
+                renderedImage+imagePixel, zBuffer+zbufferPixel, cameraPos);
+            lookAtRay[0] = xDelta + xsDelta;
+            lookAtRay[1] = yDelta + ysDelta;
+            lookAtRay[2] = focalLength;
+            blasVecMatrixProd(lookAtRay, rayTransformationMat, rays[k]->direction);
+            blasNormalize(rays[k]->direction);
             k++;
             xsDelta += sDelta;
           }
@@ -220,10 +226,12 @@ void Scene::render() {
       // No Multisampling
       else {
         rays[k] = new VisionRay(
-            renderedImage+imagePixel, zBuffer+zbufferPixel, pos);
-        rays[k]->setLookAt(xDelta, yDelta, 0);
-        rotateRay(rays[k], rayTransformationMat);
-        blasAdd(rays[k]->position, cameraPos, rays[k]->position);
+            renderedImage+imagePixel, zBuffer+zbufferPixel, cameraPos);
+        lookAtRay[0] = xDelta;
+        lookAtRay[1] = yDelta;
+        lookAtRay[2] = focalLength;
+        blasVecMatrixProd(lookAtRay, rayTransformationMat, rays[k]->direction);
+        blasNormalize(rays[k]->direction);
         k++;
       }
       zbufferPixel++;
@@ -461,17 +469,8 @@ int Scene::shadeRayIntersection(VisionRay *r) {
   }
 }
 
-void Scene::rotateRay(Ray *r, double *mat) {
-  blasVecMatrixProd(r->direction, mat, r->direction);
-  blasNormalize(r->direction);
-}
-
-void Scene::getCameraMatrix(double *pos, double *dir, double *mat) {
-  blasBuildRotMat(pos, dir, mat);
-}
-
 double Scene::diffclock(clock_t clock1, clock_t clock2) {
-    double diffticks = clock1-clock2;
-    double diffms=diffticks/CLOCKS_PER_SEC;
-    return diffms;
+  double diffticks = clock1-clock2;
+  double diffms=diffticks/CLOCKS_PER_SEC;
+  return diffms;
 }

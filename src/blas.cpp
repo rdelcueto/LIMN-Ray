@@ -25,7 +25,45 @@
 
 #include "blas.h"
 
-void blasBuildRotMat(
+void blasBuildRotMatDir(double *v, double *mat) {
+
+  double nV_YZ[3];  // LookAt YZ plane projection direction vector.
+  double nV_XZ[3];  // LookAt YZ plane projection direction vector.
+  double nV_XY[3];  // LookAt YZ plane projection direction vector.
+
+  double matA[9], matB[9];
+
+  // Canonic Vectors
+  double X[3] = {0.0}; X[0] = 1.0;
+  double Y[3] = {0.0}; Y[1] = 1.0;
+  double Z[3] = {0.0}; Z[2] = 1.0;
+
+  blasCopy(v, nV_YZ);  nV_YZ[0] = 0; nV_YZ[2] += EPS_0;
+  blasCopy(v, nV_XZ);  nV_XZ[1] = 0; nV_XZ[2] += EPS_0;
+  blasCopy(v, nV_XY);  nV_XY[2] = 0;
+
+  blasNormalize(nV_YZ);
+  blasBuildRotMatFromTo(nV_YZ, Z, matA);
+
+  blasNormalize(nV_XZ);
+  blasBuildRotMatFromTo(nV_XZ, Z, matB);
+
+  blasMatMatProd(matA, matB, mat);
+
+//  std::cout <<
+//  mat[0] << ", " <<
+//  mat[1] << ", " <<
+//  mat[2] << ";" << '\n' <<
+//  mat[3] << ", " <<
+//  mat[4] << ", " <<
+//  mat[5] << ";" << '\n' <<
+//  mat[6] << ", " <<
+//  mat[7] << ", " <<
+//  mat[8] << '\n';
+
+}
+
+void blasBuildRotMatAngles(
     const double cosAlpha, const double sinAlpha,
     const double cosBeta, const double sinBeta,
     const double cosGamma, const double sinGamma,
@@ -45,59 +83,86 @@ void blasBuildRotMat(
 
 }
 
-void blasBuildRotMat(
-    const double *pos,
-    const double *dir,
-    double *m) {
+void blasBuildRotMatFromTo(double *from, double *to, double *mat) {
 
-      double nV[3];     // Normalized direction vector.
-      double nV_YZ[3];  // LookAt YZ plane projection direction vector.
-      double nV_YZNrm;
-      double nV_XZ[3];  // LookAt YZ plane projection direction vector.
-      double nV_XZNrm;
-      double nV_XY[3];  // LookAt YZ plane projection direction vector.
-      double nV_XYNrm;
+  double v[3], e, h, f;
+  blasCross(from, to, v);
+  e = blasDot(from, to);
+  f = (e < 0) ? -e : e;
+  if(f > (1.0 - EPS_0)) {
+    double u[3], v[3], x[3];
+    double c1, c2, c3;
+    int i, j;
 
-      // Canonic Vectors
-      double X[3] = {0.0}; X[0] = 1.0;
-      double Y[3] = {0.0}; Y[1] = 1.0;
-      double Z[3] = {0.0}; Z[2] = 1.0;
+    x[0] = (from[0] > 0.0)? from[0] : -from[0];
+    x[1] = (from[1] > 0.0)? from[1] : -from[1];
+    x[2] = (from[2] > 0.0)? from[2] : -from[2];
 
-      blasSubstract(pos, dir, nV);
-      blasNormalize(nV);
-      blasInvert(nV, nV);
+    if(x[0] < x[1]) {
+      if(x[0] < x[2]) {
+        x[0] = 1.0; x[1] = x[2] = 0.0;
+      }
+      else {
+        x[2] = 1.0; x[0] = x[1] = 0.0;
+      }
+    }
+    else {
+      if(x[1] < x[2]) {
+        x[1] = 1.0; x[0] = x[2] = 0.0;
+      }
+      else {
+        x[2] = 1.0; x[0] = x[1] = 0.0;
+      }
+    }
 
-      blasCopy(nV, nV_YZ);  nV_YZ[0] = 0.0;
-      blasCopy(nV, nV_XZ);  nV_XZ[1] = 0.0;
-      blasCopy(nV, nV_XY);  nV_XY[2] = 0.0;
+    u[0] = x[0] - from[0]; u[1] = x[1] - from[1]; u[2] = x[2] - from[2];
+    v[0] = x[0] - to[0];   v[1] = x[1] - to[1];   v[2] = x[2] - to[2];
 
-      nV_YZNrm = blasNrm2(nV_YZ);
-      nV_XZNrm = blasNrm2(nV_XZ);
-      nV_XYNrm = blasNrm2(nV_XY);
+    c1 = 2.0/blasDot(u, u); c2 = 2.0/blasDot(v, v); c3 = c1*c2*blasDot(u, v);
 
-      double cosA, sinA;
-      cosA = blasDot(nV_YZ, Z) * nV_YZNrm;
-      sinA = nV_YZ[1]/nV_YZNrm;
+    for(i = 0; i < 3; i++) {
+      for(j = 0; j < 3; j++) {
+        mat[i*3+j] = - c1 *u[i]*u[j] - c2*v[i]*v[j] + c3*v[i]*u[j];
+      }
+      mat[i*3+i] += 1.0;
+    }
+  }
 
-      double cosB, sinB;
-      cosB = blasDot(nV_XZ, Z) * nV_XZNrm;
-      sinB = nV_XZ[0]/nV_XZNrm;
+  else {
+    double hvx, hvz, hvxy, hvxz, hvyz;
+    h = 1.0/(1.0 + e);
+    hvx = h * v[0];
+    hvz = h * v[2];
+    hvxy = hvx * v[1];
+    hvxz = hvx * v[2];
+    hvyz = hvz * v[1];
+    mat[0] = e + hvx * v[0];
+    mat[1] = hvxy - v[2];
+    mat[2] = hvxz + v[1];
 
-    //  double cosC, sinC;
-    //  cosC = blasDot(nV_XZ, Z) * nV_XZNrm;
-    //  sinC = nV_XZ[0]/nV_XZNrm;
+    mat[3] = hvxy + v[2];
+    mat[4] = e + h * v[1] * v[1];
+    mat[5] = hvyz - v[0];
 
-      blasBuildRotMat(cosA, -sinA, cosB, sinB, 1, 0, m);
-//      std::cout <<
-//      rayTransformationMat[0] << ", " <<
-//      rayTransformationMat[1] << ", " <<
-//      rayTransformationMat[2] << ";" << '\n' <<
-//      rayTransformationMat[3] << ", " <<
-//      rayTransformationMat[4] << ", " <<
-//      rayTransformationMat[5] << ";" << '\n' <<
-//      rayTransformationMat[6] << ", " <<
-//      rayTransformationMat[7] << ", " <<
-//      rayTransformationMat[8] << '\n';
+    mat[6] = hvxz - v[1];
+    mat[7] = hvyz + v[0];
+    mat[8] = e + hvz * v[2];
+  }
+}
+
+void blasMatMatProd(const double *a, const double *b, double *ab) {
+
+    ab[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
+    ab[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
+    ab[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
+
+    ab[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6];
+    ab[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7];
+    ab[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8];
+
+    ab[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6];
+    ab[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
+    ab[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
 
 }
 
@@ -197,15 +262,6 @@ int testBlas() {
   blasNormalize(z);
   std::cout << "Normalized X -> Z = [" << z[0] << ',' << z[1] << ',' << z[2] << ']' << std::endl;
   std::cout << "Norm-2: " << blasNrm2(z) << std::endl;
-
-  blasCopy(x, z);
-  blasFastNormalize(z);
-  std::cout << "Fast Normalized X -> Z = [" << z[0] << ',' << z[1] << ',' << z[2] << ']' << std::endl;
-  std::cout << "Norm-2: " << blasNrm2(z) << std::endl;
-
-  blasBuildRotMat(0, 1, 1, 0, 1, 0, m);
-  blasVecMatrixProd(x, m, z);
-  std::cout << "X*M->Z = [" << z[0] << ',' << z[1] << ',' << z[2] << ']' << std::endl;
 
   return 0;
 }

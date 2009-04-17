@@ -27,16 +27,22 @@
 #include <iostream>
 #include <math.h>
 
-void blasBuildRotMat(
+#define EPS_0 0.000001
+#define EPS_1 0.00001
+#define EPS_2 0.0001
+#define EPS_3 0.001
+
+void blasBuildRotMatDir(double *nV, double *mat);
+
+void blasBuildRotMatAngles(
     const double cosAlpha, const double sinAlpha,
     const double cosBeta, const double sinBeta,
     const double cosGamma, const double sinGamma,
     double *m);
 
-void blasBuildRotMat(
-    const double *pos,
-    const double *dir,
-    double *m);
+void blasBuildRotMatFromTo(double *from, double *to, double *mat);
+
+void blasMatMatProd(const double *a, const double *b, double *ab);
 
 void blasVecMatrixProd(const double *x, const double *m, double *mx);
 

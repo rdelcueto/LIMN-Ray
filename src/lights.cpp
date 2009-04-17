@@ -135,18 +135,23 @@ public:
     intensity = i/samples;
     damping = d;
 
+    blasBuildRotMatDir(dir, mat);
+
     samplePos = new double[samples*3];
-//    blasBuildRotMat(pos, dir, mat);
+    double posNrm;
 
     int k = 0;
     for(int y = 0; y < gridHeight; y++) {
       for(int x = 0; x < gridWidth; x++) {
         for(int z = 0; z < sampleDensity; z++) {
-          samplePos[k] = - wcenter + (rand() / (double(RAND_MAX))) - 0.5 + x*wdelta;
-          samplePos[k+1] = 0;
-          samplePos[k+2] = - hcenter + (rand() / (double(RAND_MAX))) - 0.5 + y*hdelta;
+          samplePos[k] = - wcenter + (rand() / (double(RAND_MAX))) + wdelta/2 + x*wdelta;
+          samplePos[k+1] = - hcenter + (rand() / (double(RAND_MAX))) + hdelta/2 + y*hdelta;
+          samplePos[k+2] = 0;
+          posNrm = blasNrm2(samplePos+k);
+          blasVecMatrixProd(samplePos+k, mat, samplePos+k);
+          blasNormalize(samplePos+k);
+          blasScale(samplePos+k, posNrm, samplePos+k);
           blasAdd(pos, samplePos+k, samplePos+k);
-//          blasVecMatrixProd(samplePos+k, mat, samplePos+k);
           k+=3;
         }
       }

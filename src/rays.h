@@ -24,13 +24,11 @@
 #ifndef RAYS_H_
 #define RAYS_H_
 
-#define NRM_EPS 0.00001
-#define DIR_EPS 0.001
-#define COLOR_EPS 0.01
-
 #include <limits>
 #include "blas.h"
 #include "materials.h"
+
+#define COLOR_EPS 0.01
 
 class Ray {
 
@@ -45,15 +43,15 @@ public:
   Material *intersectionMaterial;
 
   void move2Vec(double *v) {
-    position[0] += v[0]*NRM_EPS;
-    position[1] += v[1]*NRM_EPS;
-    position[2] += v[2]*NRM_EPS;
+    position[0] += v[0]*EPS_2;
+    position[1] += v[1]*EPS_2;
+    position[2] += v[2]*EPS_2;
   }
 
   void move2Dir() {
-    position[0] += direction[0]*DIR_EPS;
-    position[1] += direction[1]*DIR_EPS;
-    position[2] += direction[2]*DIR_EPS;
+    position[0] += direction[0]*EPS_3;
+    position[1] += direction[1]*EPS_3;
+    position[2] += direction[2]*EPS_3;
   }
 
   void setLookAt(double *lookAt) {

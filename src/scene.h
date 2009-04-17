@@ -46,9 +46,10 @@ public:
   int image_height;
   int res;
 
+  double cameraRollAngle;
   double cameraPos[3];
   double cameraLookAt[3];
-  double cameraRollAngle;
+  double fPoint[3];
   double focalLength;
   double focusPoint;
 
@@ -74,8 +75,6 @@ public:
   void deleteRayArray(VisionRay **rays, int nRays);
   double intersectRay(Ray *r);
   int shadeRayIntersection(VisionRay *r);
-  void getCameraMatrix(double *pos, double *dir, double *rotMat);
-  void rotateRay(Ray *r, double *mat);
   void outputImage(double* image, int image_w, int image_h, int imageFlag, char* imageName);
   double diffclock(clock_t clock1, clock_t clock2);
 
