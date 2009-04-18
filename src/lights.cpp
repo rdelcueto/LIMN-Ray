@@ -56,85 +56,31 @@ public:
 class AreaLight : public Light {
 public:
 
-  int height;
-  int width;
+  double height;
+  double width;
+  int gridHeight;
+  int gridWidth;
+  int sampleDensity;
   int samples;
   double *samplesPos;
   double dir[3];
 
-  AreaLight() {
+  void setSamples() {
 
-    int h = 10;
-    int w = 10;
-    int gridHeight = 5;
-    int gridWidth = 5;
-    int sampleDensity = 1;
-    double posx = 0; double posy = 25; double posz = 0;
-    double colorR = 1; double colorG = 1; double colorB = 1;
-
-    int hcenter;
-    int wcenter;
-    int hdelta;
-    int wdelta;
-
-    hcenter = h/2;
-    wcenter = w/2;
-    hdelta = h/gridHeight;
-    wdelta = w/gridWidth;
-    samples = gridHeight*gridWidth*sampleDensity;
-
-    dir[0] = 0.0; dir[1] = -1.0; dir[2] = 0.0;
-    pos[0] = posx; pos[1] = posy; pos[2] = posz;
-
-    color[0] = colorR; color[1] = colorG; color[2] = colorB;
-    intensity = 10/samples;
-    damping = 1;
-
-    samplePos = new double[samples*3];
-
-    int k = 0;
-    for(int y = 0; y < gridHeight; y++) {
-      for(int x = 0; x < gridWidth; x++) {
-        for(int i = 0; i < samples; i++) {
-          samplePos[k] = - wcenter + (rand() / (double(RAND_MAX))) - 0.5 + x*wdelta;
-          samplePos[k+1] = 0;
-          samplePos[k+2] = - hcenter + (rand() / (double(RAND_MAX))) - 0.5 + y*hdelta;
-          blasAdd(pos, samplePos+k, samplePos+k);
-          k+=3;
-        }
-      }
-    }
-
-  }
-
-  AreaLight(
-    int h, int w, int gridHeight, int gridWidth, int sampleDensity_in,
-    double posx, double posy, double posz,
-    double nrmx, double nrmy, double nrmz,
-    double colorR, double colorG, double colorB,
-    double i, double d) {
-
-    int hcenter;
-    int wcenter;
-    int hdelta;
-    int wdelta;
-    int sampleDensity;
+    double hcenter;
+    double wcenter;
+    double hdelta;
+    double wdelta;
     double mat[9];
 
-    hcenter = h/2;
-    wcenter = w/2;
-    hdelta = h/gridHeight;
-    wdelta = w/gridWidth;
-    sampleDensity = sampleDensity_in;
+    hcenter = height/2;
+    wcenter = width/2;
+    hdelta = height/gridHeight;
+    wdelta = width/gridWidth;
     samples = gridHeight*gridWidth*sampleDensity;
+    intensity /= samples;
 
-    dir[0] = nrmx; dir[1] = nrmy; dir[2] = nrmz;
-    pos[0] = posx; pos[1] = posy; pos[2] = posz;
-
-    color[0] = colorR; color[1] = colorG; color[2] = colorB;
-    intensity = i/samples;
-    damping = d;
-
+    blasNormalize(dir);
     blasBuildRotMatDir(dir, mat);
 
     samplePos = new double[samples*3];
@@ -156,6 +102,46 @@ public:
         }
       }
     }
+  }
+
+  AreaLight() {
+
+    height = 5;
+    width = 5;
+    sampleDensity = 5;
+    gridHeight = 5;
+    gridWidth = 5;
+
+    dir[0] = 0.0; dir[1] = -1.0; dir[2] = 0.0;
+    pos[0] = 0.0; pos[1] = 25; pos[2] = 0.0;
+    color[0] = 1; color[1] = 1; color[2] = 1;
+
+    intensity = 1;
+    damping = 1;
+
+  }
+
+  AreaLight(
+    double h, double w, int gridHeight_in, int gridWidth_in, int sampleDensity_in,
+    double posx, double posy, double posz,
+    double dirx, double diry, double dirz,
+    double colorR, double colorG, double colorB,
+    double i, double d) {
+
+    height = h;
+    width = w;
+    gridHeight = gridHeight_in;
+    gridWidth = gridWidth_in;
+    sampleDensity = sampleDensity_in;
+
+    dir[0] = dirx; dir[1] = diry; dir[2] = dirz;
+    pos[0] = posx; pos[1] = posy; pos[2] = posz;
+    color[0] = colorR; color[1] = colorG; color[2] = colorB;
+
+    intensity = i;
+    damping = d;
+
+    setSamples();
   }
 
   ~AreaLight() {delete [] samplePos;}
