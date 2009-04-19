@@ -30,15 +30,15 @@ class Material {
 
 public:
 
-  double color[3];
-  double opacy;
-  double filter;
-  double interior;
-  double ambient;
-  double reflection;
-  double diffuse;
-  double specular;
-  double specular_Hardness;
+  float color[3];
+  float opacy;
+  float filter;
+  float interior;
+  float ambient;
+  float reflection;
+  float diffuse;
+  float specular;
+  float specular_Hardness;
 
   Material() {
     color[0] = 1; color[1] = 1; color[2] = 1;
@@ -52,8 +52,8 @@ public:
     specular_Hardness = 32;
   }
 
-  Material(double red, double green, double blue,
-      double opacy_in, double filter_in) {
+  Material(float red, float green, float blue,
+      float opacy_in, float filter_in) {
     color[0] = 1; color[1] = 1; color[2] = 1;
     opacy = opacy_in;
     filter = filter_in;
@@ -65,11 +65,11 @@ public:
     specular_Hardness = 32;
   }
 
-  Material(double red, double green, double blue,
-      double opacy_in, double filter_in,
-      double ambient_in, double diffuse_in,
-      double specular_in, double specHardness_in,
-      double reflection_in, double interior_in) {
+  Material(float red, float green, float blue,
+      float opacy_in, float filter_in,
+      float ambient_in, float diffuse_in,
+      float specular_in, float specHardness_in,
+      float reflection_in, float interior_in) {
     color[0] = red; color[1] = green; color[2] = blue;
     opacy = opacy_in;
     filter = filter_in;

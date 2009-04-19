@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
   "LIMN-Ray v0.666\n";
 
   std::string configFile = "";
+  std::string fileOut = "image_out";
 
   int verbose = 0;
 //  omp_set_num_threads(omp_get_max_threads());
@@ -49,6 +50,10 @@ int main(int argc, char **argv) {
       configFile = argv[i+1];
       i++;
     }
+    if(strcmp(argv[i], "-o") == 0) {
+      fileOut = argv[i+1];
+      i++;
+    }
     if(strcmp(argv[i], "-v") == 0) {
       verbose = 1;
     }
@@ -56,6 +61,7 @@ int main(int argc, char **argv) {
       std::cout << "\n" <<
       "Usage: limn-ray [OPTIONS]\n" <<
       "Options are:\n" <<
+      "  -o [FILENAME]\t Output file name without extension\n" <<
       "  -v\t\t Toggle verbose\n" <<
       "  -f [FILE]\t Render scene from XML scene file\n" <<
       "  -t [n]\t Set number of processing threads\n\n";
@@ -68,6 +74,7 @@ int main(int argc, char **argv) {
     std::cout << "No file specified, running demo scene.\n";
     scene->demoScene();
   }
+
   else {
     if(verbose)
       std::cout << "Opening scene file: " << configFile << std::endl;
@@ -75,6 +82,7 @@ int main(int argc, char **argv) {
   }
 
   delete sceneConfig;
+  scene->fileOut = fileOut;
 
   if(verbose) {
     std::cout << "\nScene Settings:\n" <<

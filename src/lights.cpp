@@ -33,9 +33,9 @@ public:
     damping = 1.0;
   }
 
-  Omnidirectional(double posx, double posy, double posz,
-                  double colorR, double colorG, double colorB,
-                  double i, double d) {
+  Omnidirectional(float posx, float posy, float posz,
+                  float colorR, float colorG, float colorB,
+                  float i, float d) {
 
     pos[0] = posx; pos[1] = posy; pos[2] = posz;
     color[0] = colorR; color[1] = colorG; color[2] = colorB;
@@ -47,7 +47,7 @@ public:
     return 1;
   }
 
-  void getPosI(int i, double *lpos) {
+  void getPosI(int i, float *lpos) {
     blasCopy(pos, lpos);
   }
 
@@ -56,22 +56,22 @@ public:
 class AreaLight : public Light {
 public:
 
-  double height;
-  double width;
+  float height;
+  float width;
   int gridHeight;
   int gridWidth;
   int sampleDensity;
   int samples;
-  double *samplesPos;
-  double dir[3];
+  float *samplesPos;
+  float dir[3];
 
   void setSamples() {
 
-    double hcenter;
-    double wcenter;
-    double hdelta;
-    double wdelta;
-    double mat[9];
+    float hcenter;
+    float wcenter;
+    float hdelta;
+    float wdelta;
+    float mat[9];
 
     hcenter = height/2;
     wcenter = width/2;
@@ -83,15 +83,15 @@ public:
     blasNormalize(dir);
     blasBuildRotMatDir(dir, mat);
 
-    samplePos = new double[samples*3];
-    double posNrm;
+    samplePos = new float[samples*3];
+    float posNrm;
 
     int k = 0;
     for(int y = 0; y < gridHeight; y++) {
       for(int x = 0; x < gridWidth; x++) {
         for(int z = 0; z < sampleDensity; z++) {
-          samplePos[k] = - wcenter + (rand() / (double(RAND_MAX))) + wdelta/2 + x*wdelta;
-          samplePos[k+1] = - hcenter + (rand() / (double(RAND_MAX))) + hdelta/2 + y*hdelta;
+          samplePos[k] = - wcenter + (rand() / (float(RAND_MAX))) + wdelta/2 + x*wdelta;
+          samplePos[k+1] = - hcenter + (rand() / (float(RAND_MAX))) + hdelta/2 + y*hdelta;
           samplePos[k+2] = 0;
           posNrm = blasNrm2(samplePos+k);
           blasVecMatrixProd(samplePos+k, mat, samplePos+k);
@@ -122,11 +122,11 @@ public:
   }
 
   AreaLight(
-    double h, double w, int gridHeight_in, int gridWidth_in, int sampleDensity_in,
-    double posx, double posy, double posz,
-    double dirx, double diry, double dirz,
-    double colorR, double colorG, double colorB,
-    double i, double d) {
+    float h, float w, int gridHeight_in, int gridWidth_in, int sampleDensity_in,
+    float posx, float posy, float posz,
+    float dirx, float diry, float dirz,
+    float colorR, float colorG, float colorB,
+    float i, float d) {
 
     height = h;
     width = w;
@@ -150,7 +150,7 @@ public:
     return samples;
   }
 
-  void getPosI(int i, double *lpos) {
+  void getPosI(int i, float *lpos) {
     blasCopy(samplePos+i*3, lpos);
   }
 };

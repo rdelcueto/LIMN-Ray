@@ -34,44 +34,44 @@
 
 #define SQRT_MAGIC_F 0x5f3759df
 
-void blasBuildRotMatDir(double *nV, double *mat);
+void blasBuildRotMatDir(float *nV, float *mat);
 
 void blasBuildRotMatAngles(
-    const double cosAlpha, const double sinAlpha,
-    const double cosBeta, const double sinBeta,
-    const double cosGamma, const double sinGamma,
-    double *m);
+    const float cosAlpha, const float sinAlpha,
+    const float cosBeta, const float sinBeta,
+    const float cosGamma, const float sinGamma,
+    float *m);
 
-void blasBuildRotMatFromTo(double *from, double *to, double *mat);
+void blasBuildRotMatFromTo(float *from, float *to, float *mat);
 
-void blasMatMatProd(const double *a, const double *b, double *ab);
+void blasMatMatProd(const float *a, const float *b, float *ab);
 
-void blasVecMatrixProd(const double *x, const double *m, double *mx);
+void blasVecMatrixProd(const float *x, const float *m, float *mx);
 
-void blasAdd(const double *x, const double *y, double *z);
+void blasAdd(const float *x, const float *y, float *z);
 
-void blasSubstract(const double *x, const double *y, double *z);
+void blasSubstract(const float *x, const float *y, float *z);
 
-double blasDot(const double *x, const double *y);
+float blasDot(const float *x, const float *y);
 
-void blasCross(const double *x, const double *y, double *z);
+void blasCross(const float *x, const float *y, float *z);
 
-void blasCopy(const double *x, double *y);
+void blasCopy(const float *x, float *y);
 
-void blasScale(const double *x, register const double k, double *kx);
+void blasScale(const float *x, register const float k, float *kx);
 
-void blasInvert(const double *x, double *invx);
+void blasInvert(const float *x, float *invx);
 
-double blasFastBabSqrt(const double x);
+float blasFastBabSqrt(const float x);
 
 float blasFastInvSqrt(const float x);
 
-void blasNormalize(double *x);
+void blasNormalize(float *x);
 
-void blasFastNormalize(double *x);
+void blasFastNormalize(float *x);
 
-void blasVeryFastNormalize(double *x);
+void blasVeryFastNormalize(float *x);
 
-double blasNrm2(const double *x);
+float blasNrm2(const float *x);
 
 #endif /* BLAS_H_ */

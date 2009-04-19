@@ -25,18 +25,18 @@
 
 #include "blas.h"
 
-void blasBuildRotMatDir(double *v, double *mat) {
+void blasBuildRotMatDir(float *v, float *mat) {
 
-  double nV_YZ[3];  // LookAt YZ plane projection direction vector.
-  double nV_XZ[3];  // LookAt YZ plane projection direction vector.
-  double nV_XY[3];  // LookAt YZ plane projection direction vector.
+  float nV_YZ[3];  // LookAt YZ plane projection direction vector.
+  float nV_XZ[3];  // LookAt YZ plane projection direction vector.
+  float nV_XY[3];  // LookAt YZ plane projection direction vector.
 
-  double matA[9], matB[9];
+  float matA[9], matB[9];
 
   // Canonic Vectors
-  double X[3] = {0.0}; X[0] = 1.0;
-  double Y[3] = {0.0}; Y[1] = 1.0;
-  double Z[3] = {0.0}; Z[2] = 1.0;
+  float X[3] = {0.0}; X[0] = 1.0;
+  float Y[3] = {0.0}; Y[1] = 1.0;
+  float Z[3] = {0.0}; Z[2] = 1.0;
 
   blasCopy(v, nV_YZ);  nV_YZ[0] = 0; nV_YZ[2] += EPS_0;
   blasCopy(v, nV_XZ);  nV_XZ[1] = 0; nV_XZ[2] += EPS_0;
@@ -64,10 +64,10 @@ void blasBuildRotMatDir(double *v, double *mat) {
 }
 
 void blasBuildRotMatAngles(
-    const double cosAlpha, const double sinAlpha,
-    const double cosBeta, const double sinBeta,
-    const double cosGamma, const double sinGamma,
-    double *m) {
+    const float cosAlpha, const float sinAlpha,
+    const float cosBeta, const float sinBeta,
+    const float cosGamma, const float sinGamma,
+    float *m) {
 
     m[0] = cosGamma*cosBeta;
     m[1] = sinGamma*cosBeta;
@@ -83,15 +83,15 @@ void blasBuildRotMatAngles(
 
 }
 
-void blasBuildRotMatFromTo(double *from, double *to, double *mat) {
+void blasBuildRotMatFromTo(float *from, float *to, float *mat) {
 
-  double v[3], e, h, f;
+  float v[3], e, h, f;
   blasCross(from, to, v);
   e = blasDot(from, to);
   f = (e < 0) ? -e : e;
   if(f > (1.0 - EPS_0)) {
-    double u[3], v[3], x[3];
-    double c1, c2, c3;
+    float u[3], v[3], x[3];
+    float c1, c2, c3;
     int i, j;
 
     x[0] = (from[0] > 0.0)? from[0] : -from[0];
@@ -129,7 +129,7 @@ void blasBuildRotMatFromTo(double *from, double *to, double *mat) {
   }
 
   else {
-    double hvx, hvz, hvxy, hvxz, hvyz;
+    float hvx, hvz, hvxy, hvxz, hvyz;
     h = 1.0/(1.0 + e);
     hvx = h * v[0];
     hvz = h * v[2];
@@ -150,7 +150,7 @@ void blasBuildRotMatFromTo(double *from, double *to, double *mat) {
   }
 }
 
-void blasMatMatProd(const double *a, const double *b, double *ab) {
+void blasMatMatProd(const float *a, const float *b, float *ab) {
 
     ab[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
     ab[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
@@ -166,64 +166,65 @@ void blasMatMatProd(const double *a, const double *b, double *ab) {
 
 }
 
-void blasVecMatrixProd(const double *x, const double *m, double *mx) {
+void blasVecMatrixProd(const float *x, const float *m, float *mx) {
   mx[0] = x[0]*m[0] + x[1]*m[3] + x[2]*m[6];
   mx[1] = x[0]*m[1] + x[1]*m[4] + x[2]*m[7];
   mx[2] = x[0]*m[2] + x[1]*m[5] + x[2]*m[8];
 }
 
-void blasAdd(const double *x, const double *y, double *z) {
+void blasAdd(const float *x, const float *y, float *z) {
   z[0] = x[0] + y[0];
   z[1] = x[1] + y[1];
   z[2] = x[2] + y[2];
 }
 
-void blasSubstract(const double *x, const double *y, double *z) {
+void blasSubstract(const float *x, const float *y, float *z) {
   z[0] = x[0] - y[0];
   z[1] = x[1] - y[1];
   z[2] = x[2] - y[2];
 }
-double blasDot(const double *x, const double *y) {
+float blasDot(const float *x, const float *y) {
   return (x[0] * y[0] + x[1] * y[1] + x[2] * y[2]);
 }
 
-void blasCross(const double *x, const double *y, double *z) {
+void blasCross(const float *x, const float *y, float *z) {
   z[0] = x[1] * y[2] - x[2] * y[1];
   z[1] = x[2] * y[0] - x[0] * y[2];
   z[2] = x[0] * y[1] - x[1] * y[0];
 }
 
-void blasCopy(const double *x, double *y) {
+void blasCopy(const float *x, float *y) {
   y[0] = x[0];
   y[1] = x[1];
   y[2] = x[2];
 }
 
-void blasScale(const double *x, register const double k, double *kx) {
+void blasScale(const float *x, register const float k, float *kx) {
   kx[0] = k*x[0];
   kx[1] = k*x[1];
   kx[2] = k*x[2];
 }
 
-void blasInvert(const double *x, double *invx) {
+void blasInvert(const float *x, float *invx) {
   invx[0] = -x[0];
   invx[1] = -x[1];
   invx[2] = -x[2];
 }
 
-double blasFastBabSqrt(const double x) {
+float blasFastBabSqrt(const float x) {
   union
   {
-    long i;
-    double x;
+    int i;
+    float x;
   } u;
   u.x = x;
-  u.i = (((long)1)<<61) + (u.i >> 1) - (((long)1)<<51);
+  u.i = (1<<29) + (u.i >> 1) - (1<<22);
   u.x =       u.x + x/u.x;
-  u.x = 0.25F*u.x + x/u.x;
+  u.x = 0.25f*u.x + x/u.x;
 
   return u.x;
 }
+
 
 float blasFastInvSqrt(const float x) {
   const float xhalf = 0.5f*x;
@@ -237,24 +238,24 @@ float blasFastInvSqrt(const float x) {
   return u.x*(1.5f - xhalf*u.x*u.x);
 }
 
-void blasNormalize(double *x) {
-  register double nrm = 1;
-  nrm /= sqrt(blasDot(x, x));
+void blasNormalize(float *x) {
+  register float nrm = 1;
+  nrm /= sqrtf(blasDot(x, x));
   x[0] *= nrm; x[1] *= nrm; x[2] *= nrm;
 }
 
-void blasFastNormalize(double *x) {
-  register double nrm = 1;
+void blasFastNormalize(float *x) {
+  register float nrm = 1;
   nrm /= blasFastBabSqrt((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2]));
   x[0] *= nrm; x[1] *= nrm; x[2] *= nrm;
 }
 
-void blasVeryFastNormalize(double *x) {
-  register double nrm = blasFastInvSqrt((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2]));
+void blasVeryFastNormalize(float *x) {
+  register float nrm = blasFastInvSqrt((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2]));
   x[0] *= nrm; x[1] *= nrm; x[2] *= nrm;
 }
 
-double blasNrm2(const double *x) {
+float blasNrm2(const float *x) {
   return sqrt(blasDot(x, x));
 }
 

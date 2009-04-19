@@ -33,14 +33,14 @@ class Primitive {
 
 public:
 
-  double pos[3];
+  float pos[3];
   Material *material;
 
   Primitive() {}
 
-  virtual double intersect(Ray *r) { return 0; }
-  virtual void normalAtP(const double *p, double *n) {}
-  virtual void getPos(double *pos) {}
+  virtual float intersect(Ray *r) { return 0; }
+  virtual void normalAtP(const float *p, float *n) {}
+  virtual void getPos(float *pos) {}
 
 };
 

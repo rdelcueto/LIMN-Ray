@@ -25,7 +25,7 @@
 
 class Plane : public Primitive {
 public:
-  double planeN[3];
+  float planeN[3];
 
   Plane() {
     pos[0] = 0.0; pos[1] = 0.0; pos[2] = 0.0;
@@ -33,16 +33,16 @@ public:
     material = new Material();
   }
 
-  Plane(double posx, double posy, double posz,
-      double normalx, double normaly, double normalz) {
+  Plane(float posx, float posy, float posz,
+      float normalx, float normaly, float normalz) {
     pos[0] = posx; pos[1] = posy; pos[2] = posz;
     planeN[0] = normalx; planeN[1] = normaly; planeN[2] = normalz;
     blasNormalize(planeN);
     material = new Material();
   }
 
-  Plane(double posx, double posy, double posz,
-      double normalx, double normaly, double normalz,
+  Plane(float posx, float posy, float posz,
+      float normalx, float normaly, float normalz,
       Material *m) {
     pos[0] = posx; pos[1] = posy; pos[2] = posz;
     planeN[0] = normalx; planeN[1] = normaly; planeN[2] = normalz;
@@ -50,27 +50,27 @@ public:
     material = m;
   }
 
-  void normalAtP(const double *p, double *n) {
+  void normalAtP(const float *p, float *n) {
     n[0] = planeN[0]; n[1] = planeN[1]; n[2] = planeN[2];
   }
 
-  double intersect(Ray *r) {
-    double nDotDir = blasDot(planeN, r->direction);
+  float intersect(Ray *r) {
+    float nDotDir = blasDot(planeN, r->direction);
     if (nDotDir != 0) {
-      double line[3];
+      float line[3];
       blasSubstract(r->position, pos, line);
-      double nDotLine = -blasDot(planeN, line);
+      float nDotLine = -blasDot(planeN, line);
       if(nDotLine != 0)
         return nDotLine/nDotDir;
     }
-    return std::numeric_limits<double>::infinity();
+    return std::numeric_limits<float>::infinity();
   }
 };
 
 class Sphere : public Primitive {
 public:
-  double radius;
-  double sqrRadius;
+  float radius;
+  float sqrRadius;
 
   Sphere() {
     radius = 1.0;
@@ -79,35 +79,35 @@ public:
     material = new Material();
   }
 
-  Sphere(double x, double y, double z, double rad) {
+  Sphere(float x, float y, float z, float rad) {
     radius = rad;
     sqrRadius = radius * radius;
     pos[0] = x; pos[1] = y; pos[2] = z;
     material = new Material();
   }
 
-  Sphere(double x, double y, double z, double rad, Material *m) {
+  Sphere(float x, float y, float z, float rad, Material *m) {
       radius = rad;
       sqrRadius = radius * radius;
       pos[0] = x; pos[1] = y; pos[2] = z;
       material = m;
     }
 
-  void normalAtP(const double *p, double *n) {
+  void normalAtP(const float *p, float *n) {
     blasSubstract(p, pos, n);
     blasNormalize(n);
   }
 
-  double intersect(Ray *r) {
-    double oc[3];
+  float intersect(Ray *r) {
+    float oc[3];
     blasSubstract(pos, r->position, oc);
-    double l2oc = blasDot(oc, oc);
-    double tca = blasDot(oc, r->direction);
-    double l2hc = sqrRadius - l2oc + tca*tca;
+    float l2oc = blasDot(oc, oc);
+    float tca = blasDot(oc, r->direction);
+    float l2hc = sqrRadius - l2oc + tca*tca;
     if(l2oc < sqrRadius) return tca + sqrt(l2hc);
     else
-      if(tca < 0) return std::numeric_limits<double>::infinity();
+      if(tca < 0) return std::numeric_limits<float>::infinity();
       else return l2hc > 0 ?
-          tca - sqrt(l2hc) : std::numeric_limits<double>::infinity();
+          tca - sqrt(l2hc) : std::numeric_limits<float>::infinity();
   }
 };

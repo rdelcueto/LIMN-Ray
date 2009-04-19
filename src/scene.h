@@ -25,7 +25,7 @@
 #ifndef SCENE_H_
 #define SCENE_H_
 
-#define INF_LIMIT std::numeric_limits<double>::infinity()
+#define INF_LIMIT std::numeric_limits<float>::infinity()
 #define INTERSECT_EPSILON 0.001
 #define LIGHT_SCALE 10000
 
@@ -43,16 +43,17 @@ class Scene  {
 
 public:
 
+  std::string fileOut;
   int image_width;
   int image_height;
   int res;
 
-  double cameraRollAngle;
-  double cameraPos[3];
-  double cameraLookAt[3];
-  double fPoint[3];
-  double focalLength;
-  double focusDistance;
+  float cameraRollAngle;
+  float cameraPos[3];
+  float cameraLookAt[3];
+  float fPoint[3];
+  float focalLength;
+  float focusDistance;
 
   int samplesPerPixel;
   int secondaryRaysDepth;
@@ -60,14 +61,14 @@ public:
   int saveZBuffer;
   int zBufferMaxDepth;
 
-  double *renderedImage;
-  double *zBuffer;
+  float *renderedImage;
+  float *zBuffer;
 
   PrimitiveList sceneObjects;
   MaterialList sceneMaterials;
   LightList sceneLights;
 
-  double rayTransformationMat[9];
+  float rayTransformationMat[9];
 
   Scene();
   void demoScene();
@@ -77,9 +78,7 @@ public:
   void deleteRayArray(VisionRay **rays, int nRays);
   void intersectRay(Ray *r);
   int shadeRayIntersection(VisionRay *r);
-  void outputImage(double* image, int image_w, int image_h,
-      int imageFlag, std::string imageName);
-  double diffclock(clock_t clock1, clock_t clock2);
+  void outputImage(std::string imageName);
 
 };
 

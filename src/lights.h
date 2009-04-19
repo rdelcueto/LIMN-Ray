@@ -31,18 +31,18 @@ class Light {
 
 public:
 
-  double color[3];
-  double intensity;
-  double damping;
+  float color[3];
+  float intensity;
+  float damping;
 
-  double pos[3];
+  float pos[3];
   int samples;
-  double *samplePos;
+  float *samplePos;
 
   Light() {}
 
   virtual int getSamples() {return 0;}
-  virtual void getPosI(int i, double *lpos) {};
+  virtual void getPosI(int i, float *lpos) {};
 
 };
 

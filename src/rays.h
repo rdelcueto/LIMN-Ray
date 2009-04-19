@@ -34,16 +34,16 @@ class Ray {
 
 public:
   int type;
-  double sumTs;
-  double position[3];
-  double direction[3];
-  double weight[3];
-  double intersectionT;
-  double intersectionPoint[3];
-  double intersectionNormal[3];
+  float sumTs;
+  float position[3];
+  float direction[3];
+  float weight[3];
+  float intersectionT;
+  float intersectionPoint[3];
+  float intersectionNormal[3];
   Material *intersectionMaterial;
 
-  void move2Vec(double *v) {
+  void move2Vec(float *v) {
     position[0] += v[0]*EPS_2;
     position[1] += v[1]*EPS_2;
     position[2] += v[2]*EPS_2;
@@ -55,18 +55,18 @@ public:
     position[2] += direction[2]*EPS_3;
   }
 
-  void setLookAt(double *lookAt) {
+  void setLookAt(float *lookAt) {
     blasSubstract(lookAt, position, direction);
     blasNormalize(direction);
   }
 
-  void setLookAt(double xlookAt, double ylookAt, double zlookAt) {
+  void setLookAt(float xlookAt, float ylookAt, float zlookAt) {
     direction[0] = xlookAt; direction[1] = ylookAt; direction[2] = zlookAt;
     blasSubstract(direction, position, direction);
     blasNormalize(direction);
   }
 
-  double getWeight() {
+  float getWeight() {
     return (weight[0] + weight[1] + weight[2]);
   }
 
@@ -76,7 +76,7 @@ public:
     weight[2] = weight[2] < 0 ? 0 : weight[2];
   }
 
-  void getPosAtT(double t, double *p) {
+  void getPosAtT(float t, float *p) {
     blasScale(direction, t, p);
     blasAdd(position, p, p);
   }
