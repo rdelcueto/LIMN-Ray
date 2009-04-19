@@ -32,6 +32,8 @@
 #define EPS_2 0.0001
 #define EPS_3 0.001
 
+#define SQRT_MAGIC_F 0x5f3759df
+
 void blasBuildRotMatDir(double *nV, double *mat);
 
 void blasBuildRotMatAngles(
@@ -45,8 +47,6 @@ void blasBuildRotMatFromTo(double *from, double *to, double *mat);
 void blasMatMatProd(const double *a, const double *b, double *ab);
 
 void blasVecMatrixProd(const double *x, const double *m, double *mx);
-
-float blasfastInvSqrt(float x);
 
 void blasAdd(const double *x, const double *y, double *z);
 
@@ -62,12 +62,16 @@ void blasScale(const double *x, register const double k, double *kx);
 
 void blasInvert(const double *x, double *invx);
 
+double blasFastBabSqrt(const double x);
+
+float blasFastInvSqrt(const float x);
+
 void blasNormalize(double *x);
 
 void blasFastNormalize(double *x);
 
-double blasNrm2(const double *x);
+void blasVeryFastNormalize(double *x);
 
-int testBlas();
+double blasNrm2(const double *x);
 
 #endif /* BLAS_H_ */

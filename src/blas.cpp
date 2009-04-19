@@ -172,19 +172,6 @@ void blasVecMatrixProd(const double *x, const double *m, double *mx) {
   mx[2] = x[0]*m[2] + x[1]*m[5] + x[2]*m[8];
 }
 
-float blasfastInvSqrt(register float x) {
-  float xhalf = 0.5f*x;
-  union
-  {
-    float x;
-    int i;
-  } u;
-  u.x = x;
-  u.i = 0x5f3759df - (u.i >> 1);
-  x = u.x * (1.5f - xhalf * u.x * u.x);
-  return x;
-}
-
 void blasAdd(const double *x, const double *y, double *z) {
   z[0] = x[0] + y[0];
   z[1] = x[1] + y[1];
@@ -224,45 +211,50 @@ void blasInvert(const double *x, double *invx) {
   invx[2] = -x[2];
 }
 
+double blasFastBabSqrt(const double x) {
+  union
+  {
+    long i;
+    double x;
+  } u;
+  u.x = x;
+  u.i = (((long)1)<<61) + (u.i >> 1) - (((long)1)<<51);
+  u.x =       u.x + x/u.x;
+  u.x = 0.25F*u.x + x/u.x;
+
+  return u.x;
+}
+
+float blasFastInvSqrt(const float x) {
+  const float xhalf = 0.5f*x;
+  union
+  {
+    float x;
+    int i;
+  } u;
+  u.x = x;
+  u.i = SQRT_MAGIC_F - (u.i >> 1);
+  return u.x*(1.5f - xhalf*u.x*u.x);
+}
+
 void blasNormalize(double *x) {
-  register double nrm = sqrt(blasDot(x, x));
-  x[0] = x[0]/nrm; x[1] = x[1]/nrm; x[2] = x[2]/nrm;
+  register double nrm = 1;
+  nrm /= sqrt(blasDot(x, x));
+  x[0] *= nrm; x[1] *= nrm; x[2] *= nrm;
 }
 
 void blasFastNormalize(double *x) {
-  register float nrm;
-  nrm = blasfastInvSqrt((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2]));
-  x[0] = x[0]*nrm; x[1] = x[1]*nrm; x[2] = x[2]*nrm;
+  register double nrm = 1;
+  nrm /= blasFastBabSqrt((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2]));
+  x[0] *= nrm; x[1] *= nrm; x[2] *= nrm;
+}
+
+void blasVeryFastNormalize(double *x) {
+  register double nrm = blasFastInvSqrt((x[0] * x[0]) + (x[1] * x[1]) + (x[2] * x[2]));
+  x[0] *= nrm; x[1] *= nrm; x[2] *= nrm;
 }
 
 double blasNrm2(const double *x) {
   return sqrt(blasDot(x, x));
-}
-
-int testBlas() {
-  double m[9] = {4, 5, 6,         7, 8, 9,          10, 11, 12};
-  double x[3] = {2, 4, 6};
-  double y[3] = {2.0, 4.0, 8.0};
-  double z[3] = {0.0, 0.0, 0.0};
-
-  std::cout << "\nRunning Blas Test Suite...\n\n";
-  std::cout << "X = [" << x[0] <<','<< x[1] <<','<< x[2] << "]\n";
-  std::cout << "Y = [" << y[0] <<','<< y[1] <<','<< y[2] << "]\n";
-  std::cout << "Z = [" << z[0] <<','<< z[1] <<','<< z[2] << "]\n\n";
-
-  std::cout << "X dot Y: " << blasDot(x, y) << std::endl;
-
-  blasScale(x, 2, z);
-  std::cout << "2*X->Z = : [" << z[0] << ',' << z[1] << ',' << z[2] << ']' << std::endl;
-
-  blasCross(x, y, z);
-  std::cout << "X cross Y -> Z = [" << z[0] << ',' << z[1] << ',' << z[2] << ']' << std::endl;
-
-  blasCopy(x, z);
-  blasNormalize(z);
-  std::cout << "Normalized X -> Z = [" << z[0] << ',' << z[1] << ',' << z[2] << ']' << std::endl;
-  std::cout << "Norm-2: " << blasNrm2(z) << std::endl;
-
-  return 0;
 }
 

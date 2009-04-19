@@ -53,23 +53,23 @@ void Scene::demoScene() {
   cameraRollAngle = 0;
 
   focalLength = 50/10;
-  focusDistance = 75;
+  focusDistance = 80;
   zBufferMaxDepth = 24;
   saveZBuffer = 1;
 
   samplesPerPixel = 1;
-  secondaryRaysDepth = 3;
+  secondaryRaysDepth = 6;
   shadows = 1;
 
 // Hardcoded Demo Scene
 
-  sceneMaterials.push_back(new Material(0.94, 0.94, 0.94, 1.0, 0.0, 0.0, 0.8, 1.0, 64, 0.66, 1.0));
-  sceneMaterials.push_back(new Material(0.0, 0.8, 1.0, 1.0, 1.0, 0.0, 0.1, 0.6, 64, 0.9, 1.0));
-  sceneMaterials.push_back(new Material(1.0, 0.9, 0.3, 0.1, 0.1, 0.0, 0.1, 1.0, 128, 0.1, 1.05));
+  sceneMaterials.push_back(new Material(0.94, 0.94, 0.94, 0.9, 0.0, 0.0, 0.8, 1.0, 64, 0.66, 1.0));
+  sceneMaterials.push_back(new Material(0.0, 0.8, 1.0, 1.0, 1.0, 0.0, 0.1, 0.6, 64, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(0.33, 0.9, 0.98, 0.1, 0.3, 0.0, 0.1, 1.0, 128, 0.1, 1.05));
   sceneMaterials.push_back(new Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 64, 0.5, 1.0));
   sceneMaterials.push_back(new Material(0, 0, 0, 1.0, 0.0, 0.0, 0, 0, 64, 0.0, 1.0));
 
-  sceneLights.push_back(new AreaLight(5, 5, 5, 5, 5, 0, 30, 50, 0, -1, 0, 1.0, 0.9, 0.33, 2, 1));
+  sceneLights.push_back(new AreaLight(4, 4, 4, 4, 2, 0, 20, 50, 0, -1, 0, 1.0, 0.9, 0.45, 2, 1));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
@@ -90,8 +90,10 @@ void Scene::demoScene() {
 }
 
 void Scene::deleteRayArray(VisionRay **rays, int nRays) {
-  for(int i = 0; i < nRays; i++)
+  for(int i = 0; i < nRays; i++) {
     delete rays[i];
+    rays[i] = NULL;
+  }
 }
 
 void Scene::outputImage(double* image,
@@ -160,7 +162,11 @@ void Scene::buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRa
         j++;
       }
     }
+    // Mem Clean: Old Secondary Rays
+    delete oldRays[i];
   }
+  delete [] oldRays;
+  oldRays = NULL;
 }
 
 void Scene::render() {
@@ -191,12 +197,12 @@ void Scene::render() {
   double sDelta = delta/(samplesPerPixel + 1);
   double sOffset = delta/2;
 
-  struct tm *currTime;
+  struct tm *currTimeA, *currTimeB;
   time_t start, end;
-  start = time(NULL);
-  currTime = localtime(&start);
-  std::cout << "Started @ " <<
-    currTime->tm_hour << ':' << currTime->tm_min << ':' << currTime->tm_sec << '\n';
+  time(&start);
+  currTimeA = localtime(&start);
+  std::cout << "Rendering started @ " <<
+    currTimeA->tm_hour << ':' << currTimeA->tm_min << ':' << currTimeA->tm_sec << '\n';
 
   char progress[52];
   for(register int i = 1; i < 51; i++)
@@ -204,7 +210,7 @@ void Scene::render() {
   progress[0] = '['; progress[51] = ']';
   int p, oldp;
   p = oldp = 0;
-  std::cout << "\rRendering...\t" << progress << "\t" << p << "%";
+  std::cout << "\r" << progress << "\t" << p << "%";
   std::flush(std::cout);
 
   VisionRay **rays;
@@ -274,10 +280,6 @@ void Scene::render() {
       VisionRay **secRays = new VisionRay *[nSecRays];
       buildSecondaryRays(rays, secRays, nRays);
 
-      // Mem Clean: Primary Rays
-      deleteRayArray(rays, image_width*sqrSamples);
-      delete [] rays;
-
       while(currDepth < secondaryRaysDepth) {
         nRays = nSecRays;
         nSecRays = raytrace(secRays, nRays);
@@ -285,18 +287,13 @@ void Scene::render() {
           rays = secRays;
           secRays = new VisionRay *[nSecRays];
           buildSecondaryRays(rays, secRays, nRays);
-
-          // Mem Clean: Old Secondary Rays
-          deleteRayArray(rays, nRays);
-          delete [] rays;
-
           currDepth++;
         }
         else {
           // Mem Clean: Residual Rays
           deleteRayArray(secRays, nRays);
           delete [] secRays;
-
+          secRays = NULL;
           currDepth = secondaryRaysDepth;
         }
       }
@@ -304,6 +301,7 @@ void Scene::render() {
     else {
       deleteRayArray(rays, image_width*sqrSamples);
       delete [] rays;
+      rays = NULL;
     }
     yDelta += delta;
 
@@ -312,19 +310,23 @@ void Scene::render() {
       p = y*100/image_height;
       if(p > oldp) {
         progress[(p >> 1) + 1] = '#';
-        std::cout << "\rRendering...\t" << progress << "\t" << p << "%";
+        std::cout << "\r" << progress << "\t" << p << "%";
+        std::flush(std::cout);
         oldp = p;
       }
     }
   }
 
-  end = time(NULL);
-  currTime = localtime(&end);
+  time(&end);
+  currTimeB = localtime(&end);
 
   std::cout << "\r                                                                      ";
-  std::cout << "\rFinished @ " <<
-    currTime->tm_hour << ':' << currTime->tm_min << ':' << currTime->tm_sec;
-  std::cout << "\nWriting output...\n";
+  std::cout << "\rRendering finished @ " <<
+    currTimeB->tm_hour << ':' << currTimeB->tm_min << ':' << currTimeB->tm_sec;
+  end = end - start;
+  std::cout << "\nElapsed time: " << end << " seconds.\n";
+  std::cout << "Writing output...";
+  std::flush(std::cout);
 
   // Saving Rendered Image
   outputImage(renderedImage, image_width, image_height, 1, "image.png");
@@ -348,10 +350,10 @@ void Scene::render() {
   sceneMaterials.clear();
   sceneObjects.clear();
 
-  std::cout << "Done! Goodbye!" << std::endl;
+  std::cout << "\rGoodbye!                               " << std::endl;
 }
 
-double Scene::intersectRay(Ray *r) {
+void Scene::intersectRay(Ray *r) {
 
   // Intersection Variables
   double minT, currT;
@@ -378,12 +380,10 @@ double Scene::intersectRay(Ray *r) {
     r->getPosAtT(minT, r->intersectionPoint);
     pMin->normalAtP(r->intersectionPoint, r->intersectionNormal);
     r->intersectionMaterial = pMin->material;
-    return pMin->material->opacy;
   }
   else {
     r->sumTs = INF_LIMIT;
     r->intersectionT = INF_LIMIT;
-    return 0.0;
   }
 }
 
@@ -416,8 +416,9 @@ int Scene::shadeRayIntersection(VisionRay *r) {
     blasCopy(r->intersectionNormal, intersectionNormal);
     // View = Ray Pos - Intersection
     double v[3];
-    blasSubstract(r->position, intersectionPoint, v);
-    blasNormalize(v);
+    blasCopy(r->direction, v);
+//    blasSubstract(r->position, intersectionPoint, v);
+//    blasNormalize(v);
 
     // Light Unit Vector from Intersection Point
     double lVec[3];
@@ -445,64 +446,63 @@ int Scene::shadeRayIntersection(VisionRay *r) {
 
         ShadowRay *shadowRay = NULL;
         double shadowLight = 1.0;
-  //      double shadowColors[3] = {1.0};
+        shadowRay = new ShadowRay(intersectionPoint, lVec);
 
         if(shadows && m->opacy != 0) {
-          shadowRay = new ShadowRay(intersectionPoint, lVec);
-          double rayLight = 0;
+          shadowRay->move2Dir();
 
           do {
-            shadowRay->intersectionT = INF_LIMIT;
-            rayLight = intersectRay(shadowRay);
+            intersectRay(shadowRay);
             if(shadowRay->sumTs < lDistance) {
-              shadowLight -= rayLight;
               shadowRay->nextStep();
+              shadowLight = shadowRay->getWeight();
             }
             else break;
+          } while(shadowRay->intersectionT != INF_LIMIT
+              && shadowLight > COLOR_EPS);
+        }
+
+        if(shadowLight > COLOR_EPS) {
+
+          lDistance += r->sumTs;
+
+          double luminosity = lightSource->intensity*LIGHT_SCALE;
+          luminosity /= lDistance*lDistance*lightSource->damping;
+
+          // Diffuse
+          if(m->diffuse != 0)
+            phongD = blasDot(lVec, intersectionNormal)*m->diffuse*luminosity;
+          else phongD = 0;
+
+          // Specular
+          if(m->specular != 0) {
+            blasAdd(lVec, v, h); // LightPos + EyePos = Halfway = h
+            blasScale(h, 0.5, h); // h = Halfway / 2
+            blasCopy(intersectionPoint, d);
+            blasScale(d, blasDot(h, d), d); // (NdotNormAtP)NormAtP
+            blasSubstract(d, h, d);
+            phongS = (m->specular_Hardness/2)*blasDot(d, d);
+
+            if (phongS > 1) phongS = 0;
+            else {
+              phongS = (1-phongS)/2;
+              phongS *= phongS;
             }
-          while(shadowRay->intersectionT != INF_LIMIT
-              && shadowLight > 0);
-        }
-
-        lDistance += r->sumTs;
-
-        double luminosity = lightSource->intensity*LIGHT_SCALE*shadowLight;
-        luminosity /= lDistance*lDistance*lightSource->damping;
-
-        // Diffuse
-        if(m->diffuse != 0)
-          phongD = blasDot(lVec, intersectionNormal)*m->diffuse*luminosity;
-        else phongD = 0;
-
-        // Specular
-        if(m->specular != 0) {
-          blasAdd(lVec, v, h); // LightPos + EyePos = Halfway = h
-          blasScale(h, 0.5, h); // h = Halfway / 2
-          blasCopy(intersectionPoint, d);
-          blasScale(d, blasDot(h, d), d); // (NdotNormAtP)NormAtP
-          blasSubstract(d, h, d);
-          phongS = (m->specular_Hardness/2)*blasDot(d, d);
-
-          if (phongS > 1) phongS = 0;
-          else {
-            phongS = (1-phongS)/2;
-            phongS *= phongS;
           }
+          else phongS = 0;
+
+          if(phongD < 0) phongD = 0;
+          if(phongS < 0) phongS = 0;
+
+          r->pixel[0] += lightSource->color[0] * r->weight[0] *
+              (pixelBaseColor[0] * phongD + phongS) * shadowRay->weight[0];
+          r->pixel[1] += lightSource->color[1] * r->weight[1] *
+              (pixelBaseColor[1] * phongD + phongS) * shadowRay->weight[1];
+          r->pixel[2] += lightSource->color[2] * r->weight[2] *
+              (pixelBaseColor[2] * phongD + phongS) * shadowRay->weight[2];
         }
-        else phongS = 0;
-
-        if(phongD < 0) phongD = 0;
-        if(phongS < 0) phongS = 0;
-
-        r->pixel[0] += lightSource->color[0] * r->weight[0] *
-            (pixelBaseColor[0] * phongD + phongS);
-        r->pixel[1] += lightSource->color[1] * r->weight[1] *
-            (pixelBaseColor[1] * phongD + phongS);
-        r->pixel[2] += lightSource->color[2] * r->weight[2] *
-            (pixelBaseColor[2] * phongD + phongS);
-
         currSample++;
-        if(shadows) delete shadowRay;
+        delete shadowRay;
       }
       r->pixel[0] += r->weight[0] * pixelBaseColor[0] * m->ambient;
       r->pixel[1] += r->weight[1] * pixelBaseColor[1] * m->ambient;

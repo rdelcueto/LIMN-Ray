@@ -60,8 +60,8 @@ SceneParser::SceneParser() {
   // Can't call transcode till after Xerces Initialize()
   TAG_Scene = XMLString::transcode("Scene");
   TAG_RenderSettings = XMLString::transcode("RenderSettings");
-  ATTR_image_height = XMLString::transcode("Width");
-  ATTR_image_width = XMLString::transcode("Height");
+  ATTR_image_height = XMLString::transcode("Height");
+  ATTR_image_width = XMLString::transcode("Width");
   ATTR_cameraPosX = XMLString::transcode("CameraPosX");
   ATTR_cameraPosY = XMLString::transcode("CameraPosY");
   ATTR_cameraPosZ = XMLString::transcode("CameraPosZ");
@@ -329,6 +329,22 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
                const XMLCh* xmlch_focusDistance
                      = currentElement->getAttribute(ATTR_focusDistance);
                scene->focusDistance = atof(XMLString::transcode(xmlch_focusDistance));
+
+               const XMLCh* xmlch_zBufferMaxDepth
+                     = currentElement->getAttribute(ATTR_zBufferMaxDepth);
+               scene->zBufferMaxDepth = atof(XMLString::transcode(xmlch_zBufferMaxDepth));
+
+               const XMLCh* xmlch_saveZBuffer
+                     = currentElement->getAttribute(ATTR_saveZBuffer);
+               scene->saveZBuffer = atoi(XMLString::transcode(xmlch_saveZBuffer));
+
+               const XMLCh* xmlch_secondaryRaysDepth
+                     = currentElement->getAttribute(ATTR_secondaryRaysDepth);
+               scene->secondaryRaysDepth = atoi(XMLString::transcode(xmlch_secondaryRaysDepth));
+
+               const XMLCh* xmlch_shadows
+                     = currentElement->getAttribute(ATTR_shadows);
+               scene->shadows = atoi(XMLString::transcode(xmlch_shadows));
             }
 
             if( XMLString::equals(currentElement->getTagName(), TAG_AreaLight))
@@ -381,15 +397,15 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
 
               const XMLCh* xmlch_AreaLightGridHeight
                     = currentElement->getAttribute(ATTR_AreaLightGridHeight);
-              alight->gridHeight = atof(XMLString::transcode(xmlch_AreaLightGridHeight));
+              alight->gridHeight = atoi(XMLString::transcode(xmlch_AreaLightGridHeight));
 
               const XMLCh* xmlch_AreaLightGridWidth
                     = currentElement->getAttribute(ATTR_AreaLightGridWidth);
-              alight->gridWidth = atof(XMLString::transcode(xmlch_AreaLightGridWidth));
+              alight->gridWidth = atoi(XMLString::transcode(xmlch_AreaLightGridWidth));
 
               const XMLCh* xmlch_AreaLightSampleDensity
                     = currentElement->getAttribute(ATTR_AreaLightSampleDensity);
-              alight->sampleDensity = atof(XMLString::transcode(xmlch_AreaLightSampleDensity));
+              alight->sampleDensity = atoi(XMLString::transcode(xmlch_AreaLightSampleDensity));
 
               alight->setSamples();
               scene->sceneLights.push_back(alight);
@@ -585,5 +601,5 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
     ostringstream errBuf;
     errBuf << "Error parsing file: " << message << flush;
     XMLString::release( &message );
-    }
+   }
 }

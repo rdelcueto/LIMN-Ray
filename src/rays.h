@@ -37,6 +37,7 @@ public:
   double sumTs;
   double position[3];
   double direction[3];
+  double weight[3];
   double intersectionT;
   double intersectionPoint[3];
   double intersectionNormal[3];
@@ -63,6 +64,16 @@ public:
     direction[0] = xlookAt; direction[1] = ylookAt; direction[2] = zlookAt;
     blasSubstract(direction, position, direction);
     blasNormalize(direction);
+  }
+
+  double getWeight() {
+    return (weight[0] + weight[1] + weight[2]);
+  }
+
+  void checkPositiveWeight() {
+    weight[0] = weight[0] < 0 ? 0 : weight[0];
+    weight[1] = weight[1] < 0 ? 0 : weight[1];
+    weight[2] = weight[2] < 0 ? 0 : weight[2];
   }
 
   void getPosAtT(double t, double *p) {

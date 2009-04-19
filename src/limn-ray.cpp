@@ -28,7 +28,9 @@
 #include "parser.h"
 
 int main(int argc, char **argv) {
-  std::cout << "Limn-Ray v0.666 \n";
+  std::cout << std::endl <<
+  "LIMN-Ray v0.666\n";
+
   std::string configFile = "";
 
   int verbose = 0;
@@ -36,6 +38,7 @@ int main(int argc, char **argv) {
 
   Scene *scene = new Scene();
 
+  // Parse Commandline arguments
   for(int i = 1; i < argc; i++) {
     if(strcmp(argv[i], "-t") == 0) {
       int threads = atoi(argv[i+1]);
@@ -49,22 +52,36 @@ int main(int argc, char **argv) {
     if(strcmp(argv[i], "-v") == 0) {
       verbose = 1;
     }
+    if(strcmp(argv[i], "--help") == 0) {
+      std::cout << "\n" <<
+      "Usage: limn-ray [OPTIONS]\n" <<
+      "Options are:\n" <<
+      "  -v\t\t Toggle verbose\n" <<
+      "  -f [FILE]\t Render scene from XML scene file\n" <<
+      "  -t [n]\t Set number of processing threads\n\n";
+      return 0;
+    }
   }
   SceneParser *sceneConfig = new SceneParser();
-  if(verbose)
-    std::cout << "Opening scene file: " << configFile << std::endl;
 
   if(configFile.size() == 0) {
     std::cout << "No file specified, running demo scene.\n";
     scene->demoScene();
   }
-  else
+  else {
+    if(verbose)
+      std::cout << "Opening scene file: " << configFile << std::endl;
     sceneConfig->readSceneFile(configFile, scene);
+  }
+
+  delete sceneConfig;
 
   if(verbose) {
     std::cout << "\nScene Settings:\n" <<
       "\tRender Resolution:" <<
       scene->image_width << "x" << scene->image_height << "\n" <<
+      "\tSamples per Pixel: " <<
+      scene->samplesPerPixel*scene->samplesPerPixel << "\n" <<
       "\tCamera Position: [" <<
       scene->cameraPos[0] << ", " <<
       scene->cameraPos[1] << ", " <<
@@ -92,4 +109,6 @@ int main(int argc, char **argv) {
     std::cerr << "Error: Image has no lights or objects\n";
     return 0;
   }
+  delete scene;
+  return 0;
 }

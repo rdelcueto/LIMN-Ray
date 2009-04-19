@@ -62,9 +62,8 @@ public:
   void readSceneFile(std::string&, Scene *s) throw(std::runtime_error);
 
 private:
-   xercesc::XercesDOMParser *m_SceneFileParser;
 
-   // Internal class use only. Hold Xerces data in UTF-16 SMLCh type.
+   xercesc::XercesDOMParser *m_SceneFileParser;
 
    XMLCh* TAG_Scene;
 
@@ -142,8 +141,6 @@ private:
    XMLCh* ATTR_PlaneNormalX;
    XMLCh* ATTR_PlaneNormalY;
    XMLCh* ATTR_PlaneNormalZ;
-
-
 };
 
 #endif /* PARSER_H_ */

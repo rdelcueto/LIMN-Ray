@@ -75,7 +75,7 @@ public:
   int raytrace(VisionRay **rays, int nRays);
   void buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRays);
   void deleteRayArray(VisionRay **rays, int nRays);
-  double intersectRay(Ray *r);
+  void intersectRay(Ray *r);
   int shadeRayIntersection(VisionRay *r);
   void outputImage(double* image, int image_w, int image_h,
       int imageFlag, std::string imageName);

@@ -27,7 +27,6 @@ class VisionRay : public Ray {
 public:
   double *pixel;
   double *zBufferPixel;
-  double weight[3];
   double startRefractIndex;
 
   VisionRay(double *pixel_in, double *zBufferPixel_in, double *pos) {
@@ -116,12 +115,10 @@ public:
       weight[1] = r->weight[1] * reflectiveAlpha;
       weight[2] = r->weight[2] * reflectiveAlpha;
 
+      checkPositiveWeight();
+
       move2Vec(r->intersectionNormal);
     }
-  }
-
-  double getWeight() {
-    return (fabs(weight[0]) + fabs(weight[1]) + fabs(weight[2]));
   }
 };
 
@@ -132,11 +129,27 @@ public:
     sumTs = 0;
     blasCopy(pos, position);
     blasCopy(dir, direction);
+    weight[0] = weight[1] = weight[2] = 1.0;
     intersectionT = std::numeric_limits<double>::infinity();
   }
 
   void nextStep() {
+    sumTs += intersectionT;
     blasCopy(intersectionPoint, position);
+    intersectionT = std::numeric_limits<double>::infinity();
+    // Shadow Opacy + Color Filtering
+    double alpha = 1 - intersectionMaterial->opacy;
+    double filter[3];
+    filter[0] = filter[1] = filter[2] =  intersectionMaterial->filter;
+    filter[0] *= 1 - intersectionMaterial->color[0];
+    filter[1] *= 1 - intersectionMaterial->color[1];
+    filter[2] *= 1 - intersectionMaterial->color[2];
+    weight[0] = weight[0] * (alpha - filter[0]);
+    weight[1] = weight[1] * (alpha - filter[1]);
+    weight[2] = weight[2] * (alpha - filter[2]);
+
+    checkPositiveWeight();
+
     move2Dir();
   }
 };
