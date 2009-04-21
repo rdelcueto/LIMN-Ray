@@ -71,8 +71,8 @@ int main(int argc, char **argv) {
   SceneParser *sceneConfig = new SceneParser();
 
   if(configFile.size() == 0) {
-    std::cout << "No file specified, running demo scene.\n";
-    scene->demoScene();
+    std::cout << "No file specified, running benchmark scene.\n";
+    scene->benchmarkScene();
   }
 
   else {

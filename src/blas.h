@@ -30,7 +30,7 @@
 #define EPS_0 0.000001
 #define EPS_1 0.00001
 #define EPS_2 0.0001
-#define EPS_3 0.001
+#define EPS_3 0.005
 
 #define SQRT_MAGIC_F 0x5f3759df
 

@@ -73,10 +73,12 @@ public:
     float wdelta;
     float mat[9];
 
-    hcenter = height/2;
-    wcenter = width/2;
-    hdelta = height/gridHeight;
-    wdelta = width/gridWidth;
+
+    hdelta = height/(1.0 + gridHeight);
+    wdelta = width/(1.0 + gridWidth);
+    hcenter = -height/2.0 + hdelta/2.0;
+    wcenter = -width/2.0 + wdelta/2.0;
+
     samples = gridHeight*gridWidth*sampleDensity;
     intensity /= samples;
 
@@ -90,9 +92,9 @@ public:
     for(int y = 0; y < gridHeight; y++) {
       for(int x = 0; x < gridWidth; x++) {
         for(int z = 0; z < sampleDensity; z++) {
-          samplePos[k] = - wcenter + (rand() / (float(RAND_MAX))) + wdelta/2 + x*wdelta;
-          samplePos[k+1] = - hcenter + (rand() / (float(RAND_MAX))) + hdelta/2 + y*hdelta;
-          samplePos[k+2] = 0;
+          samplePos[k] = wcenter + (rand() / (float(RAND_MAX)))*wdelta;
+          samplePos[k+1] = hcenter + (rand() / (float(RAND_MAX)))*hdelta;
+          samplePos[k+2] = 1;
           posNrm = blasNrm2(samplePos+k);
           blasVecMatrixProd(samplePos+k, mat, samplePos+k);
           blasNormalize(samplePos+k);
@@ -100,7 +102,10 @@ public:
           blasAdd(pos, samplePos+k, samplePos+k);
           k+=3;
         }
+        wcenter += wdelta;
       }
+      wcenter = -width/2.0 + wdelta/2.0;
+      hcenter += hdelta;
     }
   }
 
@@ -134,9 +139,10 @@ public:
     gridWidth = gridWidth_in;
     sampleDensity = sampleDensity_in;
 
-    dir[0] = dirx; dir[1] = diry; dir[2] = dirz;
     pos[0] = posx; pos[1] = posy; pos[2] = posz;
     color[0] = colorR; color[1] = colorG; color[2] = colorB;
+    dir[0] = dirx; dir[1] = diry; dir[2] = dirz;
+    blasNormalize(dir);
 
     intensity = i;
     damping = d;

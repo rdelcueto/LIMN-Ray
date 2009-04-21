@@ -93,19 +93,13 @@ public:
       weight[1] = r->weight[1] * (alpha - filter[1]);
       weight[2] = r->weight[2] * (alpha - filter[2]);
 
+      checkPositiveWeight();
       move2Dir();
     }
 
     // Reflection rays
     if(rayType == 2) {
       startRefractIndex = r->startRefractIndex;
-//      if(cosT1 < 0) {
-//        blasScale(n, 2.0*cosT1, n);
-//      }
-//      else {
-//        blasInvert(n, n);
-//        blasScale(n, -2.0*cosT1, n);
-//      }
       blasScale(n, 2.0*blasDot(r->intersectionNormal, direction), n);
       blasSubstract(direction, n, direction);
       blasNormalize(direction);
@@ -116,7 +110,6 @@ public:
       weight[2] = r->weight[2] * reflectiveAlpha;
 
       checkPositiveWeight();
-
       move2Vec(r->intersectionNormal);
     }
   }

@@ -45,40 +45,49 @@ Scene::Scene() {
 
 }
 
-void Scene::demoScene() {
+void Scene::benchmarkScene() {
+
+  // Hardcoded Benchmark Scene
+
   image_width = 720;
   image_height = 480;
 
-  cameraPos[0] = -50; cameraPos[1] = 25; cameraPos[2] = -25;
-  cameraLookAt[0] = 0; cameraLookAt[1] = 8; cameraLookAt[2] = 50;
+  cameraPos[0] = 66; cameraPos[1] = 24; cameraPos[2] = -45;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 12; cameraLookAt[2] = 50;
   cameraRollAngle = 0;
 
-  focalLength = 50/10;
+  focalLength = 80/10;
   focusDistance = 85;
   zBufferMaxDepth = 24;
-  saveZBuffer = 1;
+  saveZBuffer = 0;
 
   samplesPerPixel = 1;
   secondaryRaysDepth = 6;
   shadows = 1;
 
-// Hardcoded Demo Scene
+  sceneMaterials.push_back(new Material(1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.05, 16.0, 128, 1.0, 1.0));
+  sceneMaterials.push_back(new Material(1.0, 0.25, 0.25, 0.75, 0.25, 0.0, 0.33, 1.0, 64, 0.75, 1.1));
+  sceneMaterials.push_back(new Material(0.94, 0.93, 0.93, 1.0, 0.0, 0.0, 0.66, 0.66, 64, 0.45, 1.0));
+  sceneMaterials.push_back(new Material(0.9, 0.95, 1.0, 0.1, 0.9, 0.0, 0.1, 1.0, 32, 0.66, 1.2));
 
-  sceneMaterials.push_back(new Material(0.94, 0.94, 0.94, 0.9, 0.0, 0.0, 0.8, 1.0, 64, 0.66, 1.0));
   sceneMaterials.push_back(new Material(0.0, 0.8, 1.0, 1.0, 1.0, 0.0, 0.1, 0.6, 64, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.33, 0.9, 0.98, 0.1, 0.3, 0.0, 0.1, 1.0, 128, 0.1, 1.05));
+  sceneMaterials.push_back(new Material(0.33, 0.9, 0.98, 0.1, 0.33, 0.0, 0.1, 5.0, 128, 0.2, 1.066));
   sceneMaterials.push_back(new Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 64, 0.5, 1.0));
   sceneMaterials.push_back(new Material(0, 0, 0, 1.0, 0.0, 0.0, 0, 0, 64, 0.0, 1.0));
 
-  sceneLights.push_back(new AreaLight(3, 3, 3, 3, 3, 0, 20, 50, 0, -1, 0, 1.0, 0.94, 0.45, 2, 1));
+  sceneLights.push_back(new AreaLight(3, 3, 3, 3, 2, 0, 20, 50, 0, -1, 0, 0.66, 0.9, 0.9, 1, 1));
+  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, 25, 25, 50, -1, -1, 0, 1.0, 0.9, 0.75, 1, 1));
+  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, -25, 25, 50, 1, -1, 0, 1.0, 0.9, 0.75, 1, 1));
+  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, 0, 25, 75, 0, -1, -1, 1.0, 0.9, 0.75, 1, 1));
+  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, 0, 25, 25, 0, -1, 1, 1.0, 0.9, 0.75, 1, 1));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneObjects.push_back(new Sphere(15, 5, 50, 5, *mi));
-  sceneObjects.push_back(new Sphere(-15, 5, 50, 5, *mi));
-  sceneObjects.push_back(new Sphere(0, 5, 65, 5, *mi));
-  sceneObjects.push_back(new Sphere(0, 5, 35, 5, *mi));
-  mi++;
+  sceneObjects.push_back(new Sphere(16, 5, 50, 5, *mi)); mi++;
+  sceneObjects.push_back(new Sphere(-16, 5, 50, 5, *mi)); mi++;
+  sceneObjects.push_back(new Sphere(0, 5, 66, 5, *mi)); mi++;
+  sceneObjects.push_back(new Sphere(0, 5, 34, 5, *mi)); mi++;
+
   sceneObjects.push_back(new Sphere(0, 12, 50, 5, *mi));
   mi++;
   sceneObjects.push_back(new Sphere(0, 12, 50, 10, *mi));
@@ -322,7 +331,8 @@ void Scene::render() {
   std::cout << "\rRendering finished @ " <<
     currTimeB->tm_hour << ':' << currTimeB->tm_min << ':' << currTimeB->tm_sec;
   end = end - start;
-  std::cout << "\nElapsed time: " << end << " seconds.\n";
+  std::cout << "\nElapsed time: " << end << " seconds.";
+  std::cout << "\nAverage rendering speed: " << res/end << " px/s\n";
   std::cout << "Writing output...";
   std::flush(std::cout);
 
@@ -415,10 +425,10 @@ int Scene::shadeRayIntersection(VisionRay *r) {
     // View = Ray Pos - Intersection
     float v[3];
     blasCopy(r->direction, v);
-//    blasSubstract(r->position, intersectionPoint, v);
-//    blasNormalize(v);
 
-    // Light Unit Vector from Intersection Point
+    // Light Unit Vector from Intersection Point (Sample Independant)
+    float lPos[3];
+    // Light Unit Vector from Intersection Point (Sample Dependant)
     float lVec[3];
     // h = (lVec + View)/2
     float h[3];
@@ -435,6 +445,8 @@ int Scene::shadeRayIntersection(VisionRay *r) {
       int currSample = 0;
       lightSource = *i;
       lSamples = lightSource->getSamples();
+      blasSubstract(lightSource->pos, intersectionPoint, lPos);
+      blasVeryFastNormalize(lPos);
 
       while (currSample < lSamples) {
         lightSource->getPosI(currSample, samplePos);
@@ -468,36 +480,32 @@ int Scene::shadeRayIntersection(VisionRay *r) {
           luminosity /= lDistance*lDistance*lightSource->damping;
 
           // Diffuse
-          if(m->diffuse != 0)
-            phongD = blasDot(lVec, intersectionNormal)*m->diffuse*luminosity;
+          if(m->diffuse > 0)
+            phongD = blasDot(lVec, intersectionNormal)*m->diffuse;
           else phongD = 0;
 
           // Specular
-          if(m->specular != 0) {
-            blasAdd(lVec, v, h); // LightPos + EyePos = Halfway = h
-            blasScale(h, 0.5, h); // h = Halfway / 2
-            blasCopy(intersectionPoint, d);
+          if(m->specular > 0) {
+            blasAdd(lPos, v, h); // LightPos + EyePos = Halfway = h
+            blasCopy(intersectionNormal, d);
             blasScale(d, blasDot(h, d), d); // (NdotNormAtP)NormAtP
             blasSubstract(d, h, d);
             phongS = (m->specular_Hardness/2)*blasDot(d, d);
-
-            if (phongS > 1) phongS = 0;
+            if (phongS > 4) phongS = 0;
             else {
-              phongS = (1-phongS)/2;
+              phongS = (1 - phongS/4);
               phongS *= phongS;
+              phongS *= phongS * m->specular;
             }
           }
           else phongS = 0;
 
-          if(phongD < 0) phongD = 0;
-          if(phongS < 0) phongS = 0;
-
-          tmpPixel[0] += lightSource->color[0] * r->weight[0] *
-              (pixelBaseColor[0] * phongD + phongS) * shadowRay->weight[0];
-          tmpPixel[1] += lightSource->color[1] * r->weight[1] *
-              (pixelBaseColor[1] * phongD + phongS) * shadowRay->weight[1];
-          tmpPixel[2] += lightSource->color[2] * r->weight[2] *
-              (pixelBaseColor[2] * phongD + phongS) * shadowRay->weight[2];
+          tmpPixel[0] += lightSource->color[0] * luminosity *
+              (pixelBaseColor[0] * (phongD + phongS)) * shadowRay->weight[0];
+          tmpPixel[1] += lightSource->color[1] * luminosity *
+              (pixelBaseColor[1] * (phongD + phongS)) * shadowRay->weight[1];
+          tmpPixel[2] += lightSource->color[2] * luminosity *
+              (pixelBaseColor[2] * (phongD + phongS)) * shadowRay->weight[2];
         }
         currSample++;
         delete shadowRay;
@@ -505,9 +513,12 @@ int Scene::shadeRayIntersection(VisionRay *r) {
       #pragma omp critical
       {
         if(saveZBuffer && r->zBufferPixel != NULL) r->zBufferPixel[0] = r->sumTs;
-        r->pixel[0] += r->weight[0] * pixelBaseColor[0] * m->ambient + tmpPixel[0];
-        r->pixel[1] += r->weight[1] * pixelBaseColor[1] * m->ambient + tmpPixel[1];
-        r->pixel[2] += r->weight[2] * pixelBaseColor[2] * m->ambient + tmpPixel[2];
+        r->pixel[0] += r->weight[0] *
+          (pixelBaseColor[0] * m->ambient + tmpPixel[0]);
+        r->pixel[1] += r->weight[1] *
+          (pixelBaseColor[1] * m->ambient + tmpPixel[1]);
+        r->pixel[2] += r->weight[2] *
+          (pixelBaseColor[2] * m->ambient + tmpPixel[2]);
       }
     }
     return secRays;

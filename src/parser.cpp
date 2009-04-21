@@ -505,7 +505,7 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
 
               const XMLCh* xmlch_MaterialSpecHardness
                     = currentElement->getAttribute(ATTR_MaterialSpecHardness);
-              m->specular_Hardness = atof(XMLString::transcode(xmlch_MaterialSpecHardness));
+              m->specular_Hardness = (atof(XMLString::transcode(xmlch_MaterialSpecHardness)))*8;
 
               const XMLCh* xmlch_MaterialReflection
                     = currentElement->getAttribute(ATTR_MaterialReflection);

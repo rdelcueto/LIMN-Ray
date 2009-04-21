@@ -71,7 +71,7 @@ public:
   float rayTransformationMat[9];
 
   Scene();
-  void demoScene();
+  void benchmarkScene();
   void render();
   int raytrace(VisionRay **rays, int nRays);
   void buildSecondaryRays(VisionRay **oldRays, VisionRay **newRays, int nRays);
