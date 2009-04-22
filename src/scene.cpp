@@ -30,7 +30,7 @@ Scene::Scene() {
   image_height = 1;
   res = image_height*image_width;
 
-  cameraPos[0] = -0; cameraPos[1] = 0; cameraPos[2] = 0;
+  cameraPos[0] = 0; cameraPos[1] = 0; cameraPos[2] = 0;
   cameraLookAt[0] = 0; cameraLookAt[1] = 0; cameraLookAt[2] = 1;
   cameraRollAngle = 0;
 
@@ -39,7 +39,7 @@ Scene::Scene() {
   zBufferMaxDepth = 64;
   saveZBuffer = 1;
 
-  samplesPerPixel = 1;
+  sqrtSamplesPerPixel = 1;
   secondaryRaysDepth = 1;
   shadows = 1;
 
@@ -52,51 +52,34 @@ void Scene::benchmarkScene() {
   image_width = 720;
   image_height = 480;
 
-  cameraPos[0] = 66; cameraPos[1] = 24; cameraPos[2] = -45;
-  cameraLookAt[0] = 0; cameraLookAt[1] = 12; cameraLookAt[2] = 50;
+  cameraPos[0] = 50; cameraPos[1] = 24; cameraPos[2] = -45;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 8; cameraLookAt[2] = 0;
   cameraRollAngle = 0;
 
-  focalLength = 80/10;
-  focusDistance = 85;
-  zBufferMaxDepth = 24;
-  saveZBuffer = 0;
+  focalLength = 50/10;
+  focusDistance = 75;
+  zBufferMaxDepth = 48;
+  saveZBuffer = 1;
 
-  samplesPerPixel = 1;
+  sqrtSamplesPerPixel = 2;
   secondaryRaysDepth = 6;
   shadows = 1;
 
-  sceneMaterials.push_back(new Material(1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.05, 16.0, 128, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(1.0, 0.25, 0.25, 0.75, 0.25, 0.0, 0.33, 1.0, 64, 0.75, 1.1));
-  sceneMaterials.push_back(new Material(0.94, 0.93, 0.93, 1.0, 0.0, 0.0, 0.66, 0.66, 64, 0.45, 1.0));
-  sceneMaterials.push_back(new Material(0.9, 0.95, 1.0, 0.1, 0.9, 0.0, 0.1, 1.0, 32, 0.66, 1.2));
+  sceneMaterials.push_back(new Material(1.0, 0.25, 0.25, 0.3, 0.5, 0.0, 0.33, 0, 64, 0.75, 1.1));
+  sceneMaterials.push_back(new Material(0.94, 0.93, 0.93, 1.0, 0.0, 0.1, 0.33, 0, 8, 0.33, 1.0));
+  sceneMaterials.push_back(new Material(0.3, 0.7, 1.0, 0.25, 0.75, 0.05, 0.2, 0, 32, 0.66, 1.33));
 
-  sceneMaterials.push_back(new Material(0.0, 0.8, 1.0, 1.0, 1.0, 0.0, 0.1, 0.6, 64, 1.0, 1.0));
-  sceneMaterials.push_back(new Material(0.33, 0.9, 0.98, 0.1, 0.33, 0.0, 0.1, 5.0, 128, 0.2, 1.066));
-  sceneMaterials.push_back(new Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 64, 0.5, 1.0));
-  sceneMaterials.push_back(new Material(0, 0, 0, 1.0, 0.0, 0.0, 0, 0, 64, 0.0, 1.0));
+  sceneMaterials.push_back(new Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 64, 0.33, 1.0));
 
-  sceneLights.push_back(new AreaLight(3, 3, 3, 3, 2, 0, 20, 50, 0, -1, 0, 0.66, 0.9, 0.9, 1, 1));
-  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, 25, 25, 50, -1, -1, 0, 1.0, 0.9, 0.75, 1, 1));
-  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, -25, 25, 50, 1, -1, 0, 1.0, 0.9, 0.75, 1, 1));
-  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, 0, 25, 75, 0, -1, -1, 1.0, 0.9, 0.75, 1, 1));
-  sceneLights.push_back(new AreaLight(4, 4, 2, 2, 2, 0, 25, 25, 0, -1, 1, 1.0, 0.9, 0.75, 1, 1));
+  sceneLights.push_back(new AreaLight(10, 10, 10, 10, 1, 0, 15, -15, 1, 1, 1, 0.96, 0.8, 0.75, 2, 1));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneObjects.push_back(new Sphere(16, 5, 50, 5, *mi)); mi++;
-  sceneObjects.push_back(new Sphere(-16, 5, 50, 5, *mi)); mi++;
-  sceneObjects.push_back(new Sphere(0, 5, 66, 5, *mi)); mi++;
-  sceneObjects.push_back(new Sphere(0, 5, 34, 5, *mi)); mi++;
+  sceneObjects.push_back(new Sphere(8.66, 0, -5, 5, *mi)); mi++;
+  sceneObjects.push_back(new Sphere(-8.66, 0, -5, 5, *mi)); mi++;
+  sceneObjects.push_back(new Sphere(0, 0, 10, 5, *mi)); mi++;
 
-  sceneObjects.push_back(new Sphere(0, 12, 50, 5, *mi));
-  mi++;
-  sceneObjects.push_back(new Sphere(0, 12, 50, 10, *mi));
-  mi++;
-  sceneObjects.push_back(new Plane(0, 0, 0, 0, 1, 0, *mi));
-  mi++;
-  sceneObjects.push_back(new Plane(-50, 0, 0, 1, 0, 0, *mi));
-  sceneObjects.push_back(new Plane(0, 0, 100, 0, 0, -1, *mi));
-
+  sceneObjects.push_back(new Plane(0, -5.01, 0, 0, 1, 0, *mi));
 }
 
 void Scene::deleteRayArray(VisionRay **rays, int nRays) {
@@ -108,14 +91,14 @@ void Scene::deleteRayArray(VisionRay **rays, int nRays) {
 
 void Scene::outputImage(std::string imageName) {
 
-  int s = samplesPerPixel*samplesPerPixel;
+  int s = sqrtSamplesPerPixel*sqrtSamplesPerPixel;
   int k = 0;
   std::string file = imageName;
   pngwriter image_out(image_width, image_height, 0, file.append(".png").c_str());
 
   for(register int y = 1; y <= image_height; y++)
     for(register int x = 1; x <= image_width; x++) {
-      if(samplesPerPixel > 1) {
+      if(sqrtSamplesPerPixel > 1) {
         image_out.plot(x, y,
             renderedImage[k]/s, renderedImage[k+1]/s, renderedImage[k+2]/s);
         k+=3;
@@ -130,8 +113,8 @@ void Scene::outputImage(std::string imageName) {
   image_out.close();
   image_out.clear();
   if(saveZBuffer) {
-    std::string file = imageName;
-    pngwriter zbuffer_out(image_width, image_height, 0, imageName.append("_zbuffer.png").c_str());
+    file = imageName;
+    pngwriter zbuffer_out(image_width, image_height, 0, file.append("_zbuffer.png").c_str());
     k = 0;
     for(register int y = 1; y <= image_height; y++) {
       for(register int x = 1; x <= image_width; x++) {
@@ -199,9 +182,9 @@ void Scene::render() {
   float delta = 3.6/image_width;
 
   // Pixel
-  int sqrSamples = samplesPerPixel*samplesPerPixel;
+  int sqrSamples = sqrtSamplesPerPixel*sqrtSamplesPerPixel;
   int rowLength = image_width*sqrSamples;
-  float sDelta = delta/(samplesPerPixel + 1);
+  float sDelta = delta/(sqrtSamplesPerPixel + 1);
   float sOffset = delta/2;
 
   struct tm *currTimeA, *currTimeB;
@@ -246,11 +229,11 @@ void Scene::render() {
     // Row Columns
     for(x = 0; x < image_width; x++) {
       // Multisampling
-      if(samplesPerPixel > 1) {
+      if(sqrtSamplesPerPixel > 1) {
         ysDelta = sDelta - sOffset;
-        for(int i = 0; i < samplesPerPixel; i++) {
+        for(int i = 0; i < sqrtSamplesPerPixel; i++) {
           xsDelta = sDelta - sOffset;
-          for(int j = 0; j < samplesPerPixel; j++) {
+          for(int j = 0; j < sqrtSamplesPerPixel; j++) {
             rays[k] = new VisionRay(
                 renderedImage+imagePixel, zBuffer+zbufferPixel, cameraPos);
             lookAtRay[0] = xDelta + xsDelta;

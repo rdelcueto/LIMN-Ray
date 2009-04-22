@@ -26,18 +26,51 @@
 
 #include <list>
 
+/**
+ * @class Material
+ *
+ * @brief This class describes an objects material.
+ *
+ * In this class we model a basic material definition. It includes variables
+ * describing: Color, transparency and filtering of the material together
+ * with the variables needed by the Phong model: Diffuse scale, specular scale
+ * and specular hardness index.
+ */
 class Material {
 
 public:
 
+  /** An RGB vector representing the color of the material in the RGB model. */
   float color[3];
+  /** The opacy index of the material. It represents how much light goes
+   * through it.*/
   float opacy;
+  /** The filter index of the material. It represents how much of the light
+   * that goes through it is filtered by the #color of the material.
+   * A material with filtering, apply a color mask to the shadow/secondary rays
+   * that intersect it.*/
   float filter;
+  /** The interior or refraction index of the material. It's used when the
+   * material has the #opacy index < 1, to calculate the angle in which the new
+   * rays will be transformed due to light change of direction.*/
   float interior;
+  /** The ambient of the material. It's used to give ambient light to the
+   * material by simply adding this value multiplied by the #color in the
+   * shading function.*/
   float ambient;
+  /** This is the Phong's ambient constant value. It represents the ratio of
+   * reflection of the ambient term present in all points in the scene
+   * rendered.*/
   float reflection;
+  /** This is the Phong's diffuse constant value. It represents the ratio of
+   * reflection of the diffuse term of the incoming light. */
   float diffuse;
+  /** This is the Phong's specular constant value. It represents the ratio of
+     * reflection of the specular term of the incoming light. */
   float specular;
+  /** This is the Phong's specular hardness/shininess for this material,
+   * which is larger for surfaces that are smoother and more mirror-like.
+   * When this constant is large the specular highlight is small*/
   float specular_Hardness;
 
   Material() {

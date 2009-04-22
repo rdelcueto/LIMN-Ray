@@ -27,21 +27,38 @@
 #include <list>
 #include "blas.h"
 
+/**
+ * @class Light
+ *
+ * @brief This class describes a source of light.
+ */
 class Light {
 
 public:
 
+  /** An RGB vector describing the color of the source light in the RGB model.*/
   float color[3];
+  /** The intensity scale of the light source. */
   float intensity;
+  /** The damping scale of the light source. It's meant to compensate the
+   * inverse square law of the light source distance, when values grow to big.*/
   float damping;
-
+  /** The vector describing the center/point position of the light source.*/
   float pos[3];
+  /** The samples of a light source.*/
   int samples;
-  float *samplePos;
 
   Light() {}
 
+  /**
+   * Function that returns the number of samples of a light source.
+   * Point lights have a fixed value of 1.
+   */
   virtual int getSamples() {return 0;}
+
+  /**
+   * Gets the position vector of the i sample of the source light.
+   */
   virtual void getPosI(int i, float *lpos) {};
 
 };

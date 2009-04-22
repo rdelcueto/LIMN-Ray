@@ -23,6 +23,12 @@
 
 #include "primitives.h"
 
+/**
+ * @class Plane
+ *
+ * @brief This primitive describes a plane primitive.
+ * A plane is represented as a point and a normal.
+ */
 class Plane : public Primitive {
 public:
   float planeN[3];
@@ -67,6 +73,14 @@ public:
   }
 };
 
+
+/**
+ * @class Sphere
+ *
+ * @brief This class describes a sphere primitive.
+ *
+ * A Sphere is represented by a center/position vector and it's radius.
+ */
 class Sphere : public Primitive {
 public:
   float radius;

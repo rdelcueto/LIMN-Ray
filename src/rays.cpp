@@ -23,10 +23,27 @@
 
 #include "rays.h"
 
+/**
+ * @class VisionRay
+ *
+ * @brief This class represents a vision ray.
+ *
+ * This class describes the type of rays that will be drawn in the rendered
+ * scene. This type of rays carry information such as the pixel from the parent
+ * primary ray to which this ray is related in the rendered scene and ZBuffer.
+ * It also stores the refraction index of the parent ray, in order to detect
+ * different ray's refraction.
+ * \attention {This needs to be changed into a linked list in order to support
+ * multilevel contention of primitives.}
+ */
 class VisionRay : public Ray {
 public:
+
+  /** Pointer to the related pixel in the rendered image.*/
   float *pixel;
+  /** Pointer to the related pixel in the ZBuffer image.*/
   float *zBufferPixel;
+  /** Value of the refraction index from the parent ray.*/
   float startRefractIndex;
 
   VisionRay(float *pixel_in, float *zBufferPixel_in, float *pos) {
@@ -115,8 +132,21 @@ public:
   }
 };
 
+/**
+ * @class ShadowRay
+ *
+ * @brief This class represents a shadow ray.
+ *
+ * This class is meant to create lightweight version of rays, which are used
+ * just to detect the amount of light from each source light.
+ *
+ * Each shadow ray travels to a sample light and detects intersections on its
+ * way, using the information of each intersected object's material to
+ * calculate the intensity and color of that light source.
+ */
 class ShadowRay : public Ray {
 public:
+
   ShadowRay(float *pos, float *dir) {
     type = -1;
     sumTs = 0;
@@ -126,6 +156,10 @@ public:
     intersectionT = std::numeric_limits<float>::infinity();
   }
 
+  /**
+   * This function calculates the next step on the way of the ray to the light
+   * source iterating through each intersection in each call.
+   */
   void nextStep() {
     sumTs += intersectionT;
     blasCopy(intersectionPoint, position);
@@ -142,7 +176,6 @@ public:
     weight[2] = weight[2] * (alpha - filter[2]);
 
     checkPositiveWeight();
-
     move2Dir();
   }
 };

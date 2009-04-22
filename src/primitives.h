@@ -29,17 +29,51 @@
 #include "rays.h"
 #include "materials.h"
 
+/**
+ * @class Primitive
+ *
+ * @brief This class describes a primitive object.
+ *
+ * This is class describes any object, it contains basic information of every
+ * object in the scene, such as its position in space and it's material.
+ */
 class Primitive {
 
 public:
 
+  /** The position vector of the object.*/
   float pos[3];
+  /** The pointer to the Material it has been asigned */
   Material *material;
 
   Primitive() {}
 
+  /**
+   * This function implements the intersection algorithm for the given class
+   * of object. The function receives a Ray as argument and checks for
+   * intersection. In case of intersection, the function returns the size of
+   * the direction vector of the ray at the point of intersection. If the
+   * ray doesn't intersect, it returns infinity.
+   *
+   * @param r Ray to be checked for intersection.
+   * @result The t parameter for the ray.
+   */
   virtual float intersect(Ray *r) { return 0; }
+
+  /**
+   * This function gets the normal of the object at a given point of it's
+   * surface.
+   *
+   * @param p 3D vector describing the point at the object's surface.
+   * @param n The vector describing the normal to the surface.
+   */
   virtual void normalAtP(const float *p, float *n) {}
+
+  /**
+   * This function gets the object's position vector.
+   *
+   * @param pos The destination for the position vector.
+   */
   virtual void getPos(float *pos) {}
 
 };

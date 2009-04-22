@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
   Scene *scene = new Scene();
 
-  // Parse Commandline arguments
+  // Parse Command line arguments
   for(int i = 1; i < argc; i++) {
     if(strcmp(argv[i], "-t") == 0) {
       int threads = atoi(argv[i+1]);
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
       "\tRender Resolution:" <<
       scene->image_width << "x" << scene->image_height << "\n" <<
       "\tSamples per Pixel: " <<
-      scene->samplesPerPixel*scene->samplesPerPixel << "\n" <<
+      scene->sqrtSamplesPerPixel*scene->sqrtSamplesPerPixel << "\n" <<
       "\tCamera Position: [" <<
       scene->cameraPos[0] << ", " <<
       scene->cameraPos[1] << ", " <<

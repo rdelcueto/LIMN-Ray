@@ -23,6 +23,14 @@
 
 #include "lights.h"
 
+/**
+ * @class Omnidirectional
+ *
+ * @brief This class describes an omnidirectional/point light source.
+ *
+ * An omnidirectional light simply represents a point in space, that throws rays
+ * in every direction.
+ */
 class Omnidirectional : public Light {
 public:
 
@@ -53,18 +61,50 @@ public:
 
 };
 
+/**
+ * @class AreaLight
+ *
+ * @brief This class describes an Area source light.
+ *
+ * An arealight is supposed to model a surface that emits light. For this
+ * implementation we just model rectangles. The idea is to simulate what an
+ * infinitely dense grid of point lights in all of the rectangle area would
+ * iluminate. For this we define an area light by the rectangle's dimensions
+ * and the grid size for the subsamples of the light source. Each grid square
+ * the number of samples specified by AreaLight::sampleDensity.
+ * The higher resolution of the grid and the sample density, the better the
+ * result of the approximation.
+ *
+ * In order to prevent the aliasing in lights and shadows cause by the sampling
+ * grid, we randomize the position of every sample across the area of their
+ * containing grid.
+ */
+
 class AreaLight : public Light {
 public:
 
+  /** The area light rectangle's height dimension.*/
   float height;
+  /** The area light rectangle's width dimension.*/
   float width;
+  /** The area light grid's height resolution.*/
   int gridHeight;
+  /** The area light grid's width resolution.*/
   int gridWidth;
+  /** The area light's sample number per square in it's sampling grid*/
   int sampleDensity;
+  /** The total number of samples in the area light.
+   * #samples = (#gridHeight x #gridWidth * #sampleDensity)*/
   int samples;
-  float *samplesPos;
+  /** An array of 3D vectors containing the vector position of each sample.*/
+  float *samplePos;
+  /** A 3D vector representing the direction normal to the area lights plane.*/
   float dir[3];
 
+  /**
+   * This function constructs the position of each sample and sets the remaining
+   * variables that are dependant of the first variables of the constructor.
+   */
   void setSamples() {
 
     float hcenter;
@@ -72,7 +112,6 @@ public:
     float hdelta;
     float wdelta;
     float mat[9];
-
 
     hdelta = height/(1.0 + gridHeight);
     wdelta = width/(1.0 + gridWidth);

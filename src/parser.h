@@ -54,6 +54,14 @@ enum {
    ERROR_EMPTY_DOCUMENT
 };
 
+/**
+ * @class SceneParser
+ *
+ * @brief Describes an XML scene parser of a LIMN-Ray scene.
+ *
+ * This class implements a XercesDOMParser that creates an instance of a Scene
+ * and fills the values given a scene description through an XML file.
+ */
 class SceneParser
 {
 public:
@@ -63,84 +71,84 @@ public:
 
 private:
 
-   xercesc::XercesDOMParser *m_SceneFileParser;
+  xercesc::XercesDOMParser *m_SceneFileParser;
 
-   XMLCh* TAG_Scene;
+  XMLCh* TAG_Scene;
 
-   // Scene Parameters
-   XMLCh* TAG_RenderSettings;
-   XMLCh* ATTR_image_width;
-   XMLCh* ATTR_image_height;
-   XMLCh* ATTR_res;
+  // Scene Parameters
+  XMLCh* TAG_RenderSettings;
+  XMLCh* ATTR_image_width;
+  XMLCh* ATTR_image_height;
+  XMLCh* ATTR_res;
 
-   XMLCh* ATTR_cameraPosX;
-   XMLCh* ATTR_cameraPosY;
-   XMLCh* ATTR_cameraPosZ;
-   XMLCh* ATTR_cameraLookAtX;
-   XMLCh* ATTR_cameraLookAtY;
-   XMLCh* ATTR_cameraLookAtZ;
-   XMLCh* ATTR_cameraRollAngle;
+  XMLCh* ATTR_cameraPosX;
+  XMLCh* ATTR_cameraPosY;
+  XMLCh* ATTR_cameraPosZ;
+  XMLCh* ATTR_cameraLookAtX;
+  XMLCh* ATTR_cameraLookAtY;
+  XMLCh* ATTR_cameraLookAtZ;
+  XMLCh* ATTR_cameraRollAngle;
 
-   XMLCh* ATTR_focalLength;
-   XMLCh* ATTR_focusDistance;
-   XMLCh* ATTR_zBufferMaxDepth;
-   XMLCh* ATTR_saveZBuffer;
+  XMLCh* ATTR_focalLength;
+  XMLCh* ATTR_focusDistance;
+  XMLCh* ATTR_zBufferMaxDepth;
+  XMLCh* ATTR_saveZBuffer;
 
-   XMLCh* ATTR_samplesPerPixel;
-   XMLCh* ATTR_secondaryRaysDepth;
-   XMLCh* ATTR_shadows;
+  XMLCh* ATTR_samplesPerPixel;
+  XMLCh* ATTR_secondaryRaysDepth;
+  XMLCh* ATTR_shadows;
 
-   // Light Parameters
-   XMLCh* ATTR_LightPosX;
-   XMLCh* ATTR_LightPosY;
-   XMLCh* ATTR_LightPosZ;
-   XMLCh* ATTR_LightColorR;
-   XMLCh* ATTR_LightColorG;
-   XMLCh* ATTR_LightColorB;
-   XMLCh* ATTR_LightIntensity;
-   XMLCh* ATTR_LightDamping;
+  // Light Parameters
+  XMLCh* ATTR_LightPosX;
+  XMLCh* ATTR_LightPosY;
+  XMLCh* ATTR_LightPosZ;
+  XMLCh* ATTR_LightColorR;
+  XMLCh* ATTR_LightColorG;
+  XMLCh* ATTR_LightColorB;
+  XMLCh* ATTR_LightIntensity;
+  XMLCh* ATTR_LightDamping;
 
-   // Area light
-   XMLCh* TAG_AreaLight;
-   XMLCh* ATTR_AreaLightDirX;
-   XMLCh* ATTR_AreaLightDirY;
-   XMLCh* ATTR_AreaLightDirZ;
-   XMLCh* ATTR_AreaLightHeight;
-   XMLCh* ATTR_AreaLightWidth;
-   XMLCh* ATTR_AreaLightGridHeight;
-   XMLCh* ATTR_AreaLightGridWidth;
-   XMLCh* ATTR_AreaLightSampleDensity;
+  // Area light
+  XMLCh* TAG_AreaLight;
+  XMLCh* ATTR_AreaLightDirX;
+  XMLCh* ATTR_AreaLightDirY;
+  XMLCh* ATTR_AreaLightDirZ;
+  XMLCh* ATTR_AreaLightHeight;
+  XMLCh* ATTR_AreaLightWidth;
+  XMLCh* ATTR_AreaLightGridHeight;
+  XMLCh* ATTR_AreaLightGridWidth;
+  XMLCh* ATTR_AreaLightSampleDensity;
 
-   // Point light
-   XMLCh* TAG_OmniLight;
+  // Point light
+  XMLCh* TAG_OmniLight;
 
-   // Material Parameters
-   XMLCh* TAG_Material;
-   XMLCh* ATTR_MaterialColorR;
-   XMLCh* ATTR_MaterialColorG;
-   XMLCh* ATTR_MaterialColorB;
-   XMLCh* ATTR_MaterialOpacy;
-   XMLCh* ATTR_MaterialFilter;
-   XMLCh* ATTR_MaterialInterior;
-   XMLCh* ATTR_MaterialReflection;
-   XMLCh* ATTR_MaterialAmbient;
-   XMLCh* ATTR_MaterialDiffuse;
-   XMLCh* ATTR_MaterialSpecular;
-   XMLCh* ATTR_MaterialSpecHardness;
+  // Material Parameters
+  XMLCh* TAG_Material;
+  XMLCh* ATTR_MaterialColorR;
+  XMLCh* ATTR_MaterialColorG;
+  XMLCh* ATTR_MaterialColorB;
+  XMLCh* ATTR_MaterialOpacy;
+  XMLCh* ATTR_MaterialFilter;
+  XMLCh* ATTR_MaterialInterior;
+  XMLCh* ATTR_MaterialReflection;
+  XMLCh* ATTR_MaterialAmbient;
+  XMLCh* ATTR_MaterialDiffuse;
+  XMLCh* ATTR_MaterialSpecular;
+  XMLCh* ATTR_MaterialSpecHardness;
 
-   // Primitive Parameters
-   XMLCh* ATTR_PrimitivePosX;
-   XMLCh* ATTR_PrimitivePosY;
-   XMLCh* ATTR_PrimitivePosZ;
-   XMLCh* ATTR_MaterialIndex;
-   // Sphere
-   XMLCh* TAG_Sphere;
-   XMLCh* ATTR_SphereRadius;
-   // Plane
-   XMLCh* TAG_Plane;
-   XMLCh* ATTR_PlaneNormalX;
-   XMLCh* ATTR_PlaneNormalY;
-   XMLCh* ATTR_PlaneNormalZ;
+  // Primitive Parameters
+  XMLCh* ATTR_PrimitivePosX;
+  XMLCh* ATTR_PrimitivePosY;
+  XMLCh* ATTR_PrimitivePosZ;
+  XMLCh* ATTR_MaterialIndex;
+  // Sphere
+  XMLCh* TAG_Sphere;
+  XMLCh* ATTR_SphereRadius;
+  // Plane
+  XMLCh* TAG_Plane;
+  XMLCh* ATTR_PlaneNormalX;
+  XMLCh* ATTR_PlaneNormalY;
+  XMLCh* ATTR_PlaneNormalZ;
 };
 
 #endif /* PARSER_H_ */
