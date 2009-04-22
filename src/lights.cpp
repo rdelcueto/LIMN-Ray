@@ -115,7 +115,7 @@ public:
 
     hdelta = height/(1.0 + gridHeight);
     wdelta = width/(1.0 + gridWidth);
-    hcenter = -height/2.0 + hdelta/2.0;
+    hcenter = -height/2.0;// + hdelta/2.0;
     wcenter = -width/2.0 + wdelta/2.0;
 
     samples = gridHeight*gridWidth*sampleDensity;
@@ -133,7 +133,7 @@ public:
         for(int z = 0; z < sampleDensity; z++) {
           samplePos[k] = wcenter + (rand() / (float(RAND_MAX)))*wdelta;
           samplePos[k+1] = hcenter + (rand() / (float(RAND_MAX)))*hdelta;
-          samplePos[k+2] = 1;
+          samplePos[k+2] = 0;
           posNrm = blasNrm2(samplePos+k);
           blasVecMatrixProd(samplePos+k, mat, samplePos+k);
           blasNormalize(samplePos+k);

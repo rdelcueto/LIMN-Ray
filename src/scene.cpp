@@ -52,8 +52,8 @@ void Scene::benchmarkScene() {
   image_width = 720;
   image_height = 480;
 
-  cameraPos[0] = 50; cameraPos[1] = 24; cameraPos[2] = -45;
-  cameraLookAt[0] = 0; cameraLookAt[1] = 8; cameraLookAt[2] = 0;
+  cameraPos[0] = 1; cameraPos[1] = 100; cameraPos[2] = 1;
+  cameraLookAt[0] = 0; cameraLookAt[1] = 0; cameraLookAt[2] = 0;
   cameraRollAngle = 0;
 
   focalLength = 50/10;
@@ -62,22 +62,30 @@ void Scene::benchmarkScene() {
   saveZBuffer = 1;
 
   sqrtSamplesPerPixel = 2;
-  secondaryRaysDepth = 6;
+  secondaryRaysDepth = 3;
   shadows = 1;
 
-  sceneMaterials.push_back(new Material(1.0, 0.25, 0.25, 0.3, 0.5, 0.0, 0.33, 0, 64, 0.75, 1.1));
-  sceneMaterials.push_back(new Material(0.94, 0.93, 0.93, 1.0, 0.0, 0.1, 0.33, 0, 8, 0.33, 1.0));
-  sceneMaterials.push_back(new Material(0.3, 0.7, 1.0, 0.25, 0.75, 0.05, 0.2, 0, 32, 0.66, 1.33));
+  sceneMaterials.push_back(new
+      Material(0.94, 0.93, 0.93, 1.0, 0.0, 0.05, 0.5, 0.33, 8, 0.33, 1.0));
+  sceneMaterials.push_back(new
+      Material(0.33, 0.33, 0.33, 1.0, 0.0, 0.05, 1.0, 0.1, 32, 0.66, 1.0));
 
-  sceneMaterials.push_back(new Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 64, 0.33, 1.0));
 
-  sceneLights.push_back(new AreaLight(10, 10, 10, 10, 1, 0, 15, -15, 1, 1, 1, 0.96, 0.8, 0.75, 2, 1));
+//  sceneLights.push_back(new
+//        AreaLight(9, 9, 3, 3, 1, 0, 15, 0, EPS_0, 1, EPS_0, 0.96, 0.96, 0.96, 1.5, 1));
+  sceneLights.push_back(new
+      AreaLight(4, 4, 4, 4, 1, -10, 35, 17.32, 0, 1, 0, 0.66, 0.66, 0.96, 0.66, 1));
+  sceneLights.push_back(new
+      AreaLight(4, 4, 4, 4, 1, -10, 35, -17.32, 0, 1, 0, 0.66, 0.96, 0.66, 0.66, 1));
+  sceneLights.push_back(new
+      AreaLight(4, 4, 4, 4, 1, 20, 35, 0, 0, 1, 0, 0.96, 0.66, 0.66, 0.66, 1));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
-  sceneObjects.push_back(new Sphere(8.66, 0, -5, 5, *mi)); mi++;
-  sceneObjects.push_back(new Sphere(-8.66, 0, -5, 5, *mi)); mi++;
-  sceneObjects.push_back(new Sphere(0, 0, 10, 5, *mi)); mi++;
+//    sceneObjects.push_back(new Sphere(0, 0, 0, 5, *mi)); mi++;
+  sceneObjects.push_back(new Sphere(8.66, 0, -7.5, 5, *mi));
+  sceneObjects.push_back(new Sphere(-8.66, 0, -7.5, 5, *mi));
+  sceneObjects.push_back(new Sphere(0, 0, 7.5, 5, *mi)); mi++;
 
   sceneObjects.push_back(new Plane(0, -5.01, 0, 0, 1, 0, *mi));
 }
@@ -315,7 +323,8 @@ void Scene::render() {
     currTimeB->tm_hour << ':' << currTimeB->tm_min << ':' << currTimeB->tm_sec;
   end = end - start;
   std::cout << "\nElapsed time: " << end << " seconds.";
-  std::cout << "\nAverage rendering speed: " << res/end << " px/s\n";
+  if(end == 0) std::cout << "\nAverage rendering speed: " << res << " px/s\n";
+  else std::cout << "\nAverage rendering speed: " << res/end << " px/s\n";
   std::cout << "Writing output...";
   std::flush(std::cout);
 
@@ -428,8 +437,6 @@ int Scene::shadeRayIntersection(VisionRay *r) {
       int currSample = 0;
       lightSource = *i;
       lSamples = lightSource->getSamples();
-      blasSubstract(lightSource->pos, intersectionPoint, lPos);
-      blasVeryFastNormalize(lPos);
 
       while (currSample < lSamples) {
         lightSource->getPosI(currSample, samplePos);
@@ -459,17 +466,20 @@ int Scene::shadeRayIntersection(VisionRay *r) {
 
           lDistance += r->sumTs;
 
-          float luminosity = lightSource->intensity*LIGHT_SCALE;
-          luminosity /= lDistance*lDistance*lightSource->damping;
+          float luminosity =
+            LIGHT_SCALE/(lDistance*lDistance*lightSource->damping);
 
           // Diffuse
           if(m->diffuse > 0)
-            phongD = blasDot(lVec, intersectionNormal)*m->diffuse;
+            phongD = blasDot(lVec, intersectionNormal)*m->diffuse*luminosity;
           else phongD = 0;
+
+          blasSubstract(intersectionPoint, lightSource->pos, lPos);
+          blasVeryFastNormalize(lPos);
 
           // Specular
           if(m->specular > 0) {
-            blasAdd(lPos, v, h); // LightPos + EyePos = Halfway = h
+            blasAdd(lPos, v, h); // LightPos + EyePos = 2x Halfway vector
             blasCopy(intersectionNormal, d);
             blasScale(d, blasDot(h, d), d); // (NdotNormAtP)NormAtP
             blasSubstract(d, h, d);
@@ -483,11 +493,11 @@ int Scene::shadeRayIntersection(VisionRay *r) {
           }
           else phongS = 0;
 
-          tmpPixel[0] += lightSource->color[0] * luminosity *
+          tmpPixel[0] += lightSource->color[0] * lightSource->intensity *
               (pixelBaseColor[0] * (phongD + phongS)) * shadowRay->weight[0];
-          tmpPixel[1] += lightSource->color[1] * luminosity *
+          tmpPixel[1] += lightSource->color[1] * lightSource->intensity *
               (pixelBaseColor[1] * (phongD + phongS)) * shadowRay->weight[1];
-          tmpPixel[2] += lightSource->color[2] * luminosity *
+          tmpPixel[2] += lightSource->color[2] * lightSource->intensity *
               (pixelBaseColor[2] * (phongD + phongS)) * shadowRay->weight[2];
         }
         currSample++;

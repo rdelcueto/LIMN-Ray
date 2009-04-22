@@ -82,7 +82,7 @@ public:
     reflection = 0.0;
     diffuse = 1.0;
     specular = 1.0;
-    specular_Hardness = 64;
+    specular_Hardness = 16;
   }
 
   Material(float red, float green, float blue,
@@ -95,7 +95,7 @@ public:
     reflection = 0.0;
     diffuse = 1.0;
     specular = 1.0;
-    specular_Hardness = 64;
+    specular_Hardness = 16;
   }
 
   Material(float red, float green, float blue,
@@ -111,7 +111,7 @@ public:
     reflection = reflection_in;
     diffuse = diffuse_in;
     specular = specular_in;
-    specular_Hardness = specHardness_in * 8;
+    specular_Hardness = specHardness_in;
   }
 };
 
