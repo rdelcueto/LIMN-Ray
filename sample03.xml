@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    Document   : sample03.xml
+    Created on : April 23, 2009, 03:11 AM
+    Author     : RdelCueto.
+-->
+
+<Scene>
+  <RenderSettings
+    Width = "720"
+    Height = "480"
+    CameraPosX = "50"
+    CameraPosY = "25"
+    CameraPosZ = "50"
+    CameraLookAtX = "0"
+    CameraLookAtY = "0"
+    CameraLookAtZ = "0"
+    CameraRollAngle = "0"
+    FocalLength = "80"
+    FocusDistance = "85"
+    SaveZBuffer = "1"
+    ZBufferMaxDepth = "24"
+    SamplesPerPixel = "2"
+    SecondaryRaysDepth = "6"
+    Shadows = "1"
+  ></RenderSettings>
+  
+  <AreaLight
+    LightPosX = "0"
+    LightPosY = "20"
+    LightPosZ = "0"
+    LightColorR = "0.66"
+    LightColorG = "0.9"
+    LightColorB = "0.9"
+    LightIntensity = "0.75"
+    LightDamping = "1"
+    AreaLightHeight = "3"
+    AreaLightWidth = "3"
+    AreaLightGridHeight = "3"
+    AreaLightGridWidth = "3"
+    AreaLightSampleDensity = "2"
+    AreaLightDirX = "0"
+    AreaLightDirY = "-1"
+    AreaLightDirZ = "0"
+  ></AreaLight>
+  
+  <PointLight
+    LightPosX = "-25"
+    LightPosY = "20"
+    LightPosZ = "-25"
+    LightColorR = "0.66"
+    LightColorG = "0.9"
+    LightColorB = "0.9"
+    LightIntensity = "0.5"
+    LightDamping = "1"
+  ></PointLight>
+   
+  <Sphere
+    PrimitivePosX = "0"
+    PrimitivePosY = "0"
+    PrimitivePosZ = "0"
+    SphereRadius = "5"
+    MaterialColorR = "0.94"
+    MaterialColorG = "0.94"
+    MaterialColorB = "0.94"
+    MaterialOpacy = "1.0"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.85"
+    MaterialSpecular = "0.95"
+    MaterialSpecHardness = "64.0"
+    MaterialAmbient = "0.0"
+    MaterialReflection = "0.66"
+    MaterialInterior = "1.0"
+    ></Sphere>
+    
+  <Plane
+    PrimitivePosX = "0"
+    PrimitivePosY = "-5.01"
+    PrimitivePosZ = "0"
+    PlaneNormalX = "0"
+    PlaneNormalY = "1"
+    PlaneNormalZ = "0"
+    MaterialColorR = "0.4"
+    MaterialColorG = "0.36"
+    MaterialColorB = "0.25"
+    MaterialOpacy = "1.0"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.5"
+    MaterialSpecular = "0.1"
+    MaterialSpecHardness = "64.0"
+    MaterialAmbient = "0.0"
+    MaterialReflection = "0.5"
+    MaterialInterior = "1.00"
+  ></Plane>
+  
+</Scene>

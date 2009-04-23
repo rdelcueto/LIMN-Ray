@@ -115,17 +115,22 @@ public:
 
     hdelta = height/(1.0 + gridHeight);
     wdelta = width/(1.0 + gridWidth);
-    hcenter = -height/2.0;// + hdelta/2.0;
+    hcenter = -height/2.0 + hdelta/2.0;
     wcenter = -width/2.0 + wdelta/2.0;
 
     samples = gridHeight*gridWidth*sampleDensity;
     intensity /= samples;
 
     blasNormalize(dir);
-    blasBuildRotMatDir(dir, mat);
+    float up[3] = {0.0}; up[1] = 1.0;
+    float n[3] = {0.0}; n[2] = 1.0;
+
+    blasRotFromTo(n, dir, mat);
+    blasVecMatrixProd(up, mat, up);
+
+    blasRotNV(dir, up, mat);
 
     samplePos = new float[samples*3];
-    float posNrm;
 
     int k = 0;
     for(int y = 0; y < gridHeight; y++) {
@@ -133,11 +138,8 @@ public:
         for(int z = 0; z < sampleDensity; z++) {
           samplePos[k] = wcenter + (rand() / (float(RAND_MAX)))*wdelta;
           samplePos[k+1] = hcenter + (rand() / (float(RAND_MAX)))*hdelta;
-          samplePos[k+2] = 0;
-          posNrm = blasNrm2(samplePos+k);
+          samplePos[k+2] = EPS_3;
           blasVecMatrixProd(samplePos+k, mat, samplePos+k);
-          blasNormalize(samplePos+k);
-          blasScale(samplePos+k, posNrm, samplePos+k);
           blasAdd(pos, samplePos+k, samplePos+k);
           k+=3;
         }

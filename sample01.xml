@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-    Document   : sample.xml
-    Created on : April 21, 2009, 01:39 AM
+    Document   : sample01.xml
+    Created on : April 23, 2009, 03:11 AM
     Author     : RdelCueto.
 -->
 
@@ -123,75 +123,72 @@
   
   
   <Sphere
-    PrimitivePosX = "16"
+    PrimitivePosX = "15"
     PrimitivePosY = "5"
     PrimitivePosZ = "50"
-    SphereRadius = "5"
-    MaterialColorR = "1.0"
-    MaterialColorG = "1.0"
-    MaterialColorB = "1.0"
-    MaterialOpacy = "1.0"
-    MaterialFilter = "0.0"
-    MaterialDiffuse = "0.05"
-    MaterialSpecular = "16.0"
-    MaterialSpecHardness = "128.0"
-    MaterialAmbient = "0.0"
-    MaterialReflection = "1.0"
-    MaterialInterior = "1.0"
-    ></Sphere>
-    
-  <Sphere
-    PrimitivePosX = "-16"
-    PrimitivePosY = "5"
-    PrimitivePosZ = "50"
-    SphereRadius = "5"
-    MaterialColorR = "1.0"
-    MaterialColorG = "0.25"
-    MaterialColorB = "0.25"
-    MaterialOpacy = "0.75"
-    MaterialFilter = "0.25"
-    MaterialDiffuse = "0.33"
-    MaterialSpecular = "1.0"
-    MaterialSpecHardness = "64.0"
-    MaterialAmbient = "0.0"
-    MaterialReflection = "0.75"
-    MaterialInterior = "1.1"
-    ></Sphere>
-    
-  <Sphere
-    PrimitivePosX = "0"
-    PrimitivePosY = "5"
-    PrimitivePosZ = "66"
     SphereRadius = "5"
     MaterialColorR = "0.94"
-    MaterialColorG = "0.93"
-    MaterialColorB = "0.93"
+    MaterialColorG = "0.94"
+    MaterialColorB = "0.94"
     MaterialOpacy = "1.0"
     MaterialFilter = "0.0"
-    MaterialDiffuse = "0.66"
-    MaterialSpecular = "0.66"
+    MaterialDiffuse = "0.85"
+    MaterialSpecular = "0.95"
     MaterialSpecHardness = "64.0"
     MaterialAmbient = "0.0"
-    MaterialReflection = "0.45"
+    MaterialReflection = "0.66"
     MaterialInterior = "1.0"
     ></Sphere>
-    
+  <Sphere
+    PrimitivePosX = "-15"
+    PrimitivePosY = "5"
+    PrimitivePosZ = "50"
+    SphereRadius = "5"
+    MaterialColorR = "0.94"
+    MaterialColorG = "0.94"
+    MaterialColorB = "0.94"
+    MaterialOpacy = "1.0"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.85"
+    MaterialSpecular = "0.95"
+    MaterialSpecHardness = "64.0"
+    MaterialAmbient = "0.0"
+    MaterialReflection = "0.66"
+    MaterialInterior = "1.0"
+    ></Sphere>
   <Sphere
     PrimitivePosX = "0"
     PrimitivePosY = "5"
-    PrimitivePosZ = "34"
+    PrimitivePosZ = "65"
     SphereRadius = "5"
-    MaterialColorR = "0.9"
-    MaterialColorG = "0.95"
-    MaterialColorB = "1.0"
-    MaterialOpacy = "0.1"
-    MaterialFilter = "0.9"
-    MaterialDiffuse = "0.01"
-    MaterialSpecular = "1.0"
-    MaterialSpecHardness = "32.0"
+    MaterialColorR = "0.94"
+    MaterialColorG = "0.94"
+    MaterialColorB = "0.94"
+    MaterialOpacy = "1.0"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.85"
+    MaterialSpecular = "0.95"
+    MaterialSpecHardness = "64.0"
     MaterialAmbient = "0.0"
     MaterialReflection = "0.66"
-    MaterialInterior = "1.2"
+    MaterialInterior = "1.0"
+    ></Sphere>
+  <Sphere
+    PrimitivePosX = "0"
+    PrimitivePosY = "5"
+    PrimitivePosZ = "35"
+    SphereRadius = "5"
+    MaterialColorR = "0.94"
+    MaterialColorG = "0.94"
+    MaterialColorB = "0.94"
+    MaterialOpacy = "1.0"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.85"
+    MaterialSpecular = "0.95"
+    MaterialSpecHardness = "64.0"
+    MaterialAmbient = "0.0"
+    MaterialReflection = "0.66"
+    MaterialInterior = "1.0"
     ></Sphere>
     
   <Sphere
@@ -199,17 +196,17 @@
     PrimitivePosY = "12"
     PrimitivePosZ = "50"
     SphereRadius = "5"
-    MaterialColorR = "0.0"
+    MaterialColorR = "0.2"
     MaterialColorG = "0.8"
     MaterialColorB = "1.0"
-    MaterialOpacy = "1.0"
-    MaterialFilter = "1.0"
-    MaterialDiffuse = "0.1"
-    MaterialSpecular = "0.6"
+    MaterialOpacy = "0.85"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.85"
+    MaterialSpecular = "1.0"
     MaterialSpecHardness = "64.0"
     MaterialAmbient = "0.0"
-    MaterialReflection = "1.0"
-    MaterialInterior = "1.0"
+    MaterialReflection = "0.85"
+    MaterialInterior = "1.1"
     ></Sphere>
     
   <Sphere
@@ -217,17 +214,17 @@
     PrimitivePosY = "12"
     PrimitivePosZ = "50"
     SphereRadius = "10"
-    MaterialColorR = "0.33"
+    MaterialColorR = "1.0"
     MaterialColorG = "0.9"
-    MaterialColorB = "0.98"
+    MaterialColorB = "0.3"
     MaterialOpacy = "0.1"
     MaterialFilter = "0.33"
-    MaterialDiffuse = "0.1"
-    MaterialSpecular = "5.0"
+    MaterialDiffuse = "0.15"
+    MaterialSpecular = "1.0"
     MaterialSpecHardness = "128.0"
     MaterialAmbient = "0.0"
-    MaterialReflection = "0.2"
-    MaterialInterior = "1.066"
+    MaterialReflection = "0.15"
+    MaterialInterior = "1.05"
     ></Sphere>
     
   <Plane
@@ -247,7 +244,7 @@
     MaterialSpecHardness = "64.0"
     MaterialAmbient = "0.0"
     MaterialReflection = "0.5"
-    MaterialInterior = "1.0"
+    MaterialInterior = "1.00"
   ></Plane>
   
   <Plane

@@ -25,65 +25,23 @@
 
 #include "blas.h"
 
-void blasBuildRotMatDir(float *v, float *mat) {
+void blasRotVec(const float *v,
+    const float c, const float s, float *m) {
 
-  float nV_YZ[3];  // LookAt YZ plane projection direction vector.
-  float nV_XZ[3];  // LookAt YZ plane projection direction vector.
-  float nV_XY[3];  // LookAt YZ plane projection direction vector.
+  float u = 1 - c;
 
-  float matA[9], matB[9];
-
-  // Canonic Vectors
-  float X[3] = {0.0}; X[0] = 1.0;
-  float Y[3] = {0.0}; Y[1] = 1.0;
-  float Z[3] = {0.0}; Z[2] = 1.0;
-
-  blasCopy(v, nV_YZ);  nV_YZ[0] = 0; nV_YZ[2] += EPS_0;
-  blasCopy(v, nV_XZ);  nV_XZ[1] = 0; nV_XZ[2] += EPS_0;
-  blasCopy(v, nV_XY);  nV_XY[2] = 0;
-
-  blasNormalize(nV_YZ);
-  blasBuildRotMatFromTo(nV_YZ, Z, matA);
-
-  blasNormalize(nV_XZ);
-  blasBuildRotMatFromTo(nV_XZ, Z, matB);
-
-  blasMatMatProd(matA, matB, mat);
-
-//  std::cout <<
-//  mat[0] << ", " <<
-//  mat[1] << ", " <<
-//  mat[2] << ";" << '\n' <<
-//  mat[3] << ", " <<
-//  mat[4] << ", " <<
-//  mat[5] << ";" << '\n' <<
-//  mat[6] << ", " <<
-//  mat[7] << ", " <<
-//  mat[8] << '\n';
-
+  m[0] = v[0]*v[0]*u + c;
+  m[1] = v[1]*v[0]*u - v[2]*s;
+  m[2] = v[2]*v[0]*u + v[1]*s;
+  m[3] = v[0]*v[1]*u + v[2]*s;
+  m[4] = v[1]*v[1]*u + c;
+  m[5] = v[2]*v[1]*u - v[0]*s;
+  m[6] = v[0]*v[1]*u - v[1]*s;
+  m[7] = v[1]*v[0]*u + v[0]*s;
+  m[8] = v[2]*v[2]*u + c;
 }
 
-void blasBuildRotMatAngles(
-    const float cosAlpha, const float sinAlpha,
-    const float cosBeta, const float sinBeta,
-    const float cosGamma, const float sinGamma,
-    float *m) {
-
-    m[0] = cosGamma*cosBeta;
-    m[1] = sinGamma*cosBeta;
-    m[2] = -sinBeta;
-
-    m[3] = -sinGamma*cosAlpha + cosGamma*sinBeta*sinAlpha;
-    m[4] = cosGamma*cosAlpha + sinGamma*sinBeta*sinAlpha;
-    m[5] = cosBeta*sinAlpha;
-
-    m[6] = sinGamma*sinAlpha + cosGamma*sinBeta*cosAlpha;
-    m[7] = -cosGamma*sinAlpha + sinGamma*sinBeta*cosAlpha;
-    m[8] = cosBeta*cosAlpha;
-
-}
-
-void blasBuildRotMatFromTo(float *from, float *to, float *mat) {
+void blasRotFromTo(float *from, float *to, float *mat) {
 
   float v[3], e, h, f;
   blasCross(from, to, v);
@@ -150,47 +108,97 @@ void blasBuildRotMatFromTo(float *from, float *to, float *mat) {
   }
 }
 
+void blasRotNV(const float *n, const float *up, float *m) {
+
+  float tmp[3] = {0.0};
+  float upProj = blasDot(n, up);
+  blasScale(n, upProj, tmp);
+  blasSubstract(up, tmp, tmp);
+
+  if(fabs(tmp[0]) + fabs(tmp[1]) + fabs(tmp[2]) < EPS_0) {
+    tmp[0] = -n[1]*n[0];
+    tmp[1] = 1-n[1]*n[1];
+    tmp[2] = -n[1]*n[2];
+  }
+  if(fabs(tmp[0]) + fabs(tmp[1]) + fabs(tmp[2]) < EPS_0) {
+    tmp[0] = -n[2]*n[0];
+    tmp[1] = -n[2]*n[1];
+    tmp[2] = 1-n[2]*n[2];
+  }
+  blasNormalize(tmp);
+
+  if(upProj < 0)
+    blasInvert(tmp, tmp);
+
+  float u[3], v[3];
+  blasCross(n, tmp, u);
+  if(fabs(u[0]) + fabs(u[1]) + fabs(u[2]) > 0)
+    blasNormalize(u);
+  blasCross(n, u, v);
+
+  m[0] = u[0];
+  m[1] = u[1];
+  m[2] = u[2];
+
+  m[3] = v[0];
+  m[4] = v[1];
+  m[5] = v[2];
+
+  m[6] = n[0];
+  m[7] = n[1];
+  m[8] = n[2];
+
+}
+
 void blasMatMatProd(const float *a, const float *b, float *ab) {
 
-    ab[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
-    ab[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
-    ab[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
+  ab[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
+  ab[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
+  ab[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
 
-    ab[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6];
-    ab[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7];
-    ab[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8];
+  ab[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6];
+  ab[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7];
+  ab[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8];
 
-    ab[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6];
-    ab[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
-    ab[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
+  ab[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6];
+  ab[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
+  ab[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
 
 }
 
 void blasVecMatrixProd(const float *x, const float *m, float *mx) {
-  mx[0] = x[0]*m[0] + x[1]*m[3] + x[2]*m[6];
-  mx[1] = x[0]*m[1] + x[1]*m[4] + x[2]*m[7];
-  mx[2] = x[0]*m[2] + x[1]*m[5] + x[2]*m[8];
+  float tmp[3];
+  tmp[0] = x[0]*m[0] + x[1]*m[3] + x[2]*m[6];
+  tmp[1] = x[0]*m[1] + x[1]*m[4] + x[2]*m[7];
+  tmp[2] = x[0]*m[2] + x[1]*m[5] + x[2]*m[8];
+  mx[0] = tmp[0]; mx[1] = tmp[1]; mx[2] = tmp[2];
 }
 
 void blasAdd(const float *x, const float *y, float *z) {
-  z[0] = x[0] + y[0];
-  z[1] = x[1] + y[1];
-  z[2] = x[2] + y[2];
+  float tmp[3];
+  tmp[0] = x[0] + y[0];
+  tmp[1] = x[1] + y[1];
+  tmp[2] = x[2] + y[2];
+  z[0] = tmp[0]; z[1] = tmp[1]; z[2] = tmp[2];
 }
 
 void blasSubstract(const float *x, const float *y, float *z) {
-  z[0] = x[0] - y[0];
-  z[1] = x[1] - y[1];
-  z[2] = x[2] - y[2];
+  float tmp[3];
+  tmp[0] = x[0] - y[0];
+  tmp[1] = x[1] - y[1];
+  tmp[2] = x[2] - y[2];
+  z[0] = tmp[0]; z[1] = tmp[1]; z[2] = tmp[2];
 }
 float blasDot(const float *x, const float *y) {
   return (x[0] * y[0] + x[1] * y[1] + x[2] * y[2]);
 }
 
 void blasCross(const float *x, const float *y, float *z) {
-  z[0] = x[1] * y[2] - x[2] * y[1];
-  z[1] = x[2] * y[0] - x[0] * y[2];
-  z[2] = x[0] * y[1] - x[1] * y[0];
+  float tmp[3];
+  tmp[0] = x[1] * y[2] - x[2] * y[1];
+  tmp[1] = x[2] * y[0] - x[0] * y[2];
+  tmp[2] = x[0] * y[1] - x[1] * y[0];
+  z[0] = tmp[0]; z[1] = tmp[1]; z[2] = tmp[2];
 }
 
 void blasCopy(const float *x, float *y) {
@@ -224,7 +232,6 @@ float blasFastBabSqrt(const float x) {
 
   return u.x;
 }
-
 
 float blasFastInvSqrt(const float x) {
   const float xhalf = 0.5f*x;

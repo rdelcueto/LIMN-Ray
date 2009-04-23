@@ -29,7 +29,7 @@
 
 int main(int argc, char **argv) {
   std::cout << std::endl <<
-  "LIMN-Ray v0.666\n";
+  "LIMN-Ray v1.0\n";
 
   std::string configFile = "";
   std::string fileOut = "image_out";

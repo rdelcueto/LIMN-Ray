@@ -496,6 +496,9 @@
 <option id="gnu.cpp.compiler.exe.release.option.optimization.level.261740866" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.exe.release.option.debugging.level.185892634" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.other.other.281318020" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 `freetype-config --cflags` -fopenmp -mfpmath=sse -msse3 " valueType="string"/>
+<option id="gnu.cpp.compiler.option.debugging.prof.23663228" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="false" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.debugging.gprof.1212376277" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="false" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.optimization.flags.1432415559" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fsingle-precision-constant" valueType="string"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.839285348" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.791135736" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -506,6 +509,8 @@
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1510357099" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.519580813" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 <option id="gnu.cpp.link.option.flags.2029260010" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-lgomp -lxerces-c -lpng -lpngwriter -lz -lfreetype" valueType="string"/>
+<option id="gnu.cpp.link.option.debugging.gprof.814728104" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="false" valueType="boolean"/>
+<option id="gnu.cpp.link.option.debugging.prof.1115200465" name="Generate prof information (-p)" superClass="gnu.cpp.link.option.debugging.prof" value="false" valueType="boolean"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1548154460" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 <additionalInput kind="additionalinput" paths="$(LIBS)"/>

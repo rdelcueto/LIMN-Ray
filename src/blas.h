@@ -35,34 +35,17 @@
 /// Quake 3 Magic constant for calculating the fast invSqrt().
 #define SQRT_MAGIC_F 0x5f3759df
 
-
 /**
- * This function creates a rotation matrix from an arbitrary vector to the Z
- * canonic vector.
+ * This function creates a rotation matrix given an arbitrary 3D rotation vector
+ * axis and the rotation angle.
  *
- * @param nV Normalized arbitrary direction vector.
- * @param mat 3x3 rotation matrix result.
+ * @param v Normalized rotation axis.
+ * @param c Cosine of the rotation angle.
+ * @param s Sine of the rotation angle.
+ * @param m 3x3 rotation matrix result.
  */
-void blasBuildRotMatDir(float *nV, float *mat);
-
-/**
- * This function creates a rotation matrix for the given sines and cosines
- * in each axis.
- *
- * @param cosAlpha The cosine of the alpha angle.
- * @param sinAlpha The sine of the alpha angle.
- * @param cosBeta The cosine of the beta angle.
- * @param sinBeta The sine of the beta angle.
- * @param cosGamma The cosine of the gamma angle.
- * @param sinGamma The sine of the gamma angle.
- * @param m the 3x3 rotation matrix result.
- *
- */
-void blasBuildRotMatAngles(
-    const float cosAlpha, const float sinAlpha,
-    const float cosBeta, const float sinBeta,
-    const float cosGamma, const float sinGamma,
-    float *m);
+void blasRotVec(const float *v,
+    const float c, const float s, float *m);
 
 /**
  * This function is an interface for the blasBuildRotMatDir(), that creates
@@ -73,7 +56,14 @@ void blasBuildRotMatAngles(
  * @param mat The resulting transformation matrix for transforming #from into
  *      #to.
  */
-void blasBuildRotMatFromTo(float *from, float *to, float *mat);
+void blasRotFromTo(float *from, float *to, float *mat);
+
+/**
+ * This function creates a coordinate exchange matrix.
+ * @param n Normal vector, points towards the front of the viewer.
+ * @param up Up vector, points to the up direction of the viewer.
+ */
+void blasRotNV(const float *n, const float *up, float *m);
 
 /**
  * Function that multiplies two 3x3 matrixes, AxB=AB.
