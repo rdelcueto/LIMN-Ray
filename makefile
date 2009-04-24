@@ -1,5 +1,5 @@
 ################################################################################
-# LIMN-Ray MAKEFILE
+# LIMN-Ray's MAKEFILE
 ################################################################################
 
 RM := rm -rf
@@ -39,7 +39,7 @@ bin/%.o: ./src/%.cpp
 	@mkdir -p ./bin ./deps
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -O3 -Wall -c -fmessage-length=0 `freetype-config --cflags` -fopenmp -mfpmath=sse -msse3 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
+	g++ -O3 -fsingle-precision-constant -Wall -c -fmessage-length=0 `freetype-config --cflags` -fopenmp -mfpmath=sse -msse3 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
