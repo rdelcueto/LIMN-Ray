@@ -226,13 +226,9 @@ void Scene::render() {
   std::cout << "Rendering started @ " <<
     currTimeA->tm_hour << ':' << currTimeA->tm_min << ':' << currTimeA->tm_sec << '\n';
 
-  char progress[52];
-  for(register int i = 1; i < 51; i++)
-    progress[i] = ' ';
-  progress[0] = '['; progress[51] = ']';
   int p, oldp;
   p = oldp = 0;
-  std::cout << "\r" << progress << "\t" << p << "%";
+  std::cout << "\r" << "Completed: " << p << "%";
   std::flush(std::cout);
 
   VisionRay **rays;
@@ -331,8 +327,7 @@ void Scene::render() {
     {
       p = y*100/image_height;
       if(p > oldp) {
-        progress[(p >> 1) + 1] = '#';
-        std::cout << "\r" << progress << "\t" << p << "%";
+        std::cout << "\r" << "Completed: " << p << "%";
         std::flush(std::cout);
         oldp = p;
       }

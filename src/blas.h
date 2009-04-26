@@ -24,7 +24,7 @@
 #ifndef BLAS_H_
 #define BLAS_H_
 
-#include <iostream>
+#include <cstdlib>
 #include <math.h>
 
 #define EPS_0 0.000001
