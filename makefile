@@ -1,47 +1,12 @@
 ################################################################################
-# LIMN-Ray's MAKEFILE
+# LIMN-RAY v1.0 MAKEFILE
 ################################################################################
 
 RM := rm -rf
 
-CPP_SRCS += \
-./src/blas.cpp \
-./src/lights.cpp \
-./src/limn-ray.cpp \
-./src/materials.cpp \
-./src/parser.cpp \
-./src/primitives.cpp \
-./src/rays.cpp \
-./src/scene.cpp 
-
-OBJS += \
-./bin/blas.o \
-./bin/lights.o \
-./bin/limn-ray.o \
-./bin/materials.o \
-./bin/parser.o \
-./bin/primitives.o \
-./bin/rays.o \
-./bin/scene.o 
-
-CPP_DEPS += \
-./bin/blas.d \
-./bin/lights.d \
-./bin/limn-ray.d \
-./bin/materials.d \
-./bin/parser.d \
-./bin/primitives.d \
-./bin/rays.d \
-./bin/scene.d 
-
-# Each subdirectory must supply rules for building sources it contributes
-bin/%.o: ./src/%.cpp
-	@mkdir -p ./bin ./deps
-	@echo 'Building file: $<'
-	@echo 'Invoking: GCC C++ Compiler'
-	g++ -O3 -fsingle-precision-constant -Wall -c -fmessage-length=0 `freetype-config --cflags` -fopenmp -mfpmath=sse -msse3 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
-	@echo 'Finished building: $<'
-	@echo ' '
+# All of the sources participating in the build are defined here
+-include sources.mk
+-include subdir.mk
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(strip $(C++_DEPS)),)
@@ -71,7 +36,7 @@ all: limn-ray
 limn-ray: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -lgomp -lxerces-c -lpng -lpngwriter -lz -lfreetype -o"limn-ray" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -lgomp -lxerces-c -lpng -lpngwriter -lz -lfreetype -o "limn-ray" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

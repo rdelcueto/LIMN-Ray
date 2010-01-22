@@ -49,7 +49,7 @@ void Scene::benchmarkScene() {
 
   // Hardcoded Benchmark Scene
 
-  image_width = 720;
+  image_width = 640;
   image_height = 480;
 
   cameraPos[0] = -24; cameraPos[1] = 24; cameraPos[2] = -24;
@@ -86,7 +86,7 @@ void Scene::benchmarkScene() {
 
 
     sceneLights.push_back(new
-        AreaLight(9, 9, 9, 9, 1, 0, 20, 0, 0, -1, 0, 0.95, 0.9, 0.5, 1, 1));
+        AreaLight(6, 6, 6, 6, 3, 0, 20, 0, 0, -1, 0, 0.95, 0.8, 0.6, 1, 2));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 

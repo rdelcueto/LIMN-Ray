@@ -30,6 +30,7 @@
 #define LIGHT_SCALE 10000
 
 #include <fstream>
+#include <iostream>
 #include <time.h>
 #include <omp.h>
 #include <pngwriter.h>

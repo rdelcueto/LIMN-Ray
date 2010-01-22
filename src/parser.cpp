@@ -334,6 +334,10 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
                      = currentElement->getAttribute(ATTR_zBufferMaxDepth);
                scene->zBufferMaxDepth = atof(XMLString::transcode(xmlch_zBufferMaxDepth));
 
+               const XMLCh* xmlch_samplesPerPixel
+                     = currentElement->getAttribute(ATTR_samplesPerPixel);
+               scene->sqrtSamplesPerPixel = atof(XMLString::transcode(xmlch_samplesPerPixel));
+
                const XMLCh* xmlch_saveZBuffer
                      = currentElement->getAttribute(ATTR_saveZBuffer);
                scene->saveZBuffer = atoi(XMLString::transcode(xmlch_saveZBuffer));

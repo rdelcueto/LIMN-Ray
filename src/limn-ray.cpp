@@ -23,7 +23,6 @@
 
 #include <iostream>
 #include <limits>
-
 #include "scene.h"
 #include "parser.h"
 
@@ -35,7 +34,7 @@ int main(int argc, char **argv) {
   std::string fileOut = "image_out";
 
   int verbose = 0;
-//  omp_set_num_threads(omp_get_max_threads());
+  omp_set_num_threads(omp_get_max_threads());
 
   Scene *scene = new Scene();
 
