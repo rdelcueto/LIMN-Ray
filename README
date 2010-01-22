@@ -1,0 +1,68 @@
+LIMN-Ray v1.0 README
+
+--------------
+ Introduction
+--------------
+
+LIMN-Ray is a raytracer written in C++, which started as a programming project for a subject at collage. The goal was to create a fast and slim ray tracing rendering engine, using approximations of the Phong lightning model.
+
+LIMN-Ray implements the basic ray tracing algorithm without using recursion, in order to exploit parallelism. At the moment LIMN-Ray uses the OpenMP API to distribute the work between threads by interleaving rows of pixels.
+
+-----------------------------
+ Downloading the Source Code
+-----------------------------
+
+You can get LIMN-Ray v1.0 source code archive at the download section or in the SVN repository @ Google Code.
+
+SVN Checkout command:
+
+$ svn checkout http://limn-ray.googlecode.com/svn/trunk/ limn-ray
+
+------------------------
+ Compiling instructions
+------------------------
+
+The current instructions are for Linux systems, but you should be able to compile LIMN-Ray successfully if you satisfy the project's dependencies using your OS's alternatives.
+
+To compile LIMN-Ray you need G++ >= v4.2 and the following libraries installed into your system:
+
+* Xerces-c++
+* GCC OpenMP (GOMP)
+* PNGWriter
+
+If you run an Ubuntu distro in your system, you can get the following Deb packages using apt/aptitude or the Synaptic Package Manager:
+
+* build-essential
+* libxerces28-dev
+* libgomp1
+* libpngwriter-dev
+
+Once you have LIMN-Ray's source code and extracted it, just go into the './limn-ray' folder, I've included a makefile, so you should be able to compile using the Make tool by just typing 'make' and waiting until the compiling process ends.
+
+------------------
+ Running LIMN-Ray
+------------------
+
+If you run LIMN-Ray without any arguments, it will start rendering the default benchmark scene, and output the result into the 'image_out.png' & 'image_out_zbuffer.png'.
+
+You can add the '--help' argument when running LIMN-Ray to see the available options. This would display the following:
+
+Usage: limn-ray [OPTIONS]
+Options are:
+  -o [FILENAME]  Output file name without extension
+  -v             Toggle verbose
+  -f [FILE]      Render scene from XML scene file
+  -t [n]         Set number of processing threads
+
+By typing the '-o' argument and appending a file name, FILENAME? would be the prefix name of you output rendered image in PNG format. By typing the '-v' argument, LIMN-Ray would display a basic scene description of the scene it's about to render. This is useful when creating a scene and checking for errors in the XML description. By typing the '-f' argument and appending a file name, one can specify an XML file describing the scene. By typing the '-t' argument and appending an integer number, one can specify the number of running threads dedicated for the rendering process.
+
+This is an example for rendering one of the sample scenes provided with the source code:
+
+$ ./limn-ray -f sample01.xml -o sample01 -v -t 1
+
+With this command, we have specified LIMN-Ray to:
+
+* Render the scene described in 'sample01.xml'.
+* To save the result render into the 'sample01.png' image file.
+* Enabled verbose to show a brief description of the scene.
+* Forced LIMN-Ray to use only one processing thread.
