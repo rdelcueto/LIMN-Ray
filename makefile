@@ -36,7 +36,7 @@ all: limn-ray
 limn-ray: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -lgomp -lxerces-c -lpng -lpngwriter -lz -lfreetype -o "limn-ray" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -lgomp -lxerces-c -lpng -lz -o "limn-ray" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

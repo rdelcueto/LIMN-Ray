@@ -38,8 +38,6 @@ CPP_DEPS += \
 src/%.o: ./src/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -O3 -fsingle-precision-constant -Wall -c -fmessage-length=0 `freetype-config --cflags` -fopenmp -ffast-math -mfpmath=sse -msse3 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
+	g++ -O2 -ftree-vectorize -msse2 -ftree-vectorizer-verbose=5 -ffast-math -fsingle-precision-constant -Wall -c -fmessage-length=0 -fopenmp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
-
-

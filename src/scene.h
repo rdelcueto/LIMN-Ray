@@ -31,9 +31,11 @@
 
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+
 #include <time.h>
 #include <omp.h>
-#include <pngwriter.h>
+#include <png.h>
 
 #include "primitives.cpp"
 #include "materials.cpp"
@@ -57,11 +59,11 @@ public:
   /** String containing the output filename. */
   std::string fileOut;
   /** Width in pixels of the rendered image. */
-  int image_width;
+  size_t image_width;
   /** Height in pixels of the rendered image. */
-  int image_height;
+  size_t image_height;
   /** Rendered image resolution Width x Height. */
-  int res;
+  size_t res;
   /** Camera up vector rotation angle. */
   float cameraRollAngle;
   /** Camera position vector. */
@@ -75,7 +77,7 @@ public:
   /** Z-Buffer's zero point. */
   float focusDistance;
   /** Sqrt of the total samples per pixel. */
-  int sqrtSamplesPerPixel;
+  size_t sqrtSamplesPerPixel;
   /** Recursive maximum ray depth. */
   int secondaryRaysDepth;
   /** Enable shadows flag. (0 = disabled) */
