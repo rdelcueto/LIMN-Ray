@@ -1,4 +1,4 @@
-LIMN-Ray v1.0 README
+LIMN-Ray v1.1 README
 
 --------------
  Introduction
@@ -26,16 +26,14 @@ The current instructions are for Linux systems, but you should be able to compil
 
 To compile LIMN-Ray you need G++ >= v4.2 and the following libraries installed into your system:
 
-* Xerces-c++
-* GCC OpenMP (GOMP)
-* PNGWriter
+* Xerces-2.8-c++
+* Magick++
 
 If you run an Ubuntu distro in your system, you can get the following Deb packages using apt/aptitude or the Synaptic Package Manager:
 
 * build-essential
-* libxerces28-dev
-* libgomp1
-* libpngwriter-dev
+* libxerces-c28-dev
+* libmagick++-dev
 
 Once you have LIMN-Ray's source code and extracted it, just go into the './limn-ray' folder, I've included a makefile, so you should be able to compile using the Make tool by just typing 'make' and waiting until the compiling process ends.
 

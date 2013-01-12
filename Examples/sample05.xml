@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    Document   : sample03.xml
+    Created on : April 23, 2009, 03:11 AM
+    Author     : RdelCueto.
+-->
+
+<Scene>
+  <RenderSettings
+    Width = "800"
+    Height = "600"
+    CameraPosX = "0"
+    CameraPosY = "40"
+    CameraPosZ = "-80 "
+    CameraLookAtX = "0.0"
+    CameraLookAtY = "5.0"
+    CameraLookAtZ = "-10.0"
+    CameraRollAngle = "0.0"
+    FocalLength = "50"
+    FocusDistance = "60"
+    SaveZBuffer = "1"
+    ZBufferMaxDepth = "24"
+    SamplesPerPixel = "2"
+    SecondaryRaysDepth = "2"
+    Shadows = "1"
+  ></RenderSettings>
+  
+  <AreaLight
+    LightPosX = "0"
+    LightPosY = "30"
+    LightPosZ = "-10"
+    LightColorR = "1.0"
+    LightColorG = "0.95"
+    LightColorB = "0.9"
+    LightIntensity = "1.0"
+    LightDamping = "1"
+    AreaLightHeight = "10"
+    AreaLightWidth = "10"
+    AreaLightGridHeight = "5"
+    AreaLightGridWidth = "5"
+    AreaLightSampleDensity = "2"
+    AreaLightDirX = "0"
+    AreaLightDirY = "-1"
+    AreaLightDirZ = "0"
+  ></AreaLight>
+
+  <Sphere
+    PrimitivePosX = "0"
+    PrimitivePosY = "10"
+    PrimitivePosZ = "0"
+    SphereRadius = "10"
+    MaterialColorR = "0.8"
+    MaterialColorG = "0.1"
+    MaterialColorB = "0.1"
+    MaterialOpacy = "1.0"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.7"
+    MaterialSpecular = "0.7"
+    MaterialSpecHardness = "5.0"
+    MaterialAmbient = "0.0"
+    MaterialReflection = "0.6"
+    MaterialInterior = "1.0"
+    ></Sphere>
+    
+  <Plane
+    PrimitivePosX = "0"
+    PrimitivePosY = "0"
+    PrimitivePosZ = "0"
+    PlaneNormalX = "0"
+    PlaneNormalY = "1"
+    PlaneNormalZ = "0"
+    MaterialColorR = "1.0"
+    MaterialColorG = "1.0"
+    MaterialColorB = "1.0"
+    MaterialOpacy = "1.0"
+    MaterialFilter = "0.0"
+    MaterialDiffuse = "0.6"
+    MaterialSpecular = "0.1"
+    MaterialSpecHardness = "0.1"
+    MaterialAmbient = "0.0"
+    MaterialReflection = "0.666"
+    MaterialInterior = "1.0"
+  ></Plane>
+  
+</Scene>

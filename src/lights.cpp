@@ -55,6 +55,10 @@ public:
     return 1;
   }
 
+  void setSamples() {
+    return;
+  }
+
   void getPosI(int i, float *lpos) {
     blasCopy(pos, lpos);
   }
@@ -118,9 +122,6 @@ public:
     hcenter = -height/2.0 + hdelta/2.0;
     wcenter = -width/2.0 + wdelta/2.0;
 
-    samples = gridHeight*gridWidth*sampleDensity;
-    intensity /= samples;
-
     blasNormalize(dir);
     float up[3] = {0.0}; up[1] = 1.0;
     float n[3] = {0.0}; n[2] = 1.0;
@@ -129,8 +130,6 @@ public:
     blasVecMatrixProd(up, mat, up);
 
     blasRotNV(dir, up, mat);
-
-    samplePos = new float[samples*3];
 
     int k = 0;
     for(int y = 0; y < gridHeight; y++) {
@@ -162,7 +161,10 @@ public:
     pos[0] = 0.0; pos[1] = 25; pos[2] = 0.0;
     color[0] = 1; color[1] = 1; color[2] = 1;
 
-    intensity = 1;
+    samples = gridHeight*gridWidth*sampleDensity;
+    samplePos = new float[samples*3];
+
+    intensity = 1.0f/samples;
     damping = 1;
 
   }
@@ -185,15 +187,18 @@ public:
     dir[0] = dirx; dir[1] = diry; dir[2] = dirz;
     blasNormalize(dir);
 
-    intensity = i;
+    samples = gridHeight*gridWidth*sampleDensity;
+    samplePos = new float[samples*3];
+
+    intensity = i/samples;
     damping = d;
 
-    setSamples();
   }
 
   ~AreaLight() {delete [] samplePos;}
 
   int getSamples() {
+    setSamples();
     return samples;
   }
 

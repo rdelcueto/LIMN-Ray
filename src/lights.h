@@ -56,6 +56,7 @@ public:
    */
   virtual int getSamples() {return 0;}
 
+  virtual void setSamples() {return;}
   /**
    * Gets the position vector of the i sample of the source light.
    */

@@ -379,14 +379,6 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
                     = currentElement->getAttribute(ATTR_LightColorB);
               alight->color[2] = atof(XMLString::transcode(xmlch_LightColorB));
 
-              const XMLCh* xmlch_LightDamping
-                    = currentElement->getAttribute(ATTR_LightDamping);
-              alight->damping = atof(XMLString::transcode(xmlch_LightDamping));
-
-              const XMLCh* xmlch_LightIntensity
-                    = currentElement->getAttribute(ATTR_LightIntensity);
-              alight->intensity = atof(XMLString::transcode(xmlch_LightIntensity));
-
               const XMLCh* xmlch_AreaLightDirX
                     = currentElement->getAttribute(ATTR_AreaLightDirX);
               alight->dir[0] = atof(XMLString::transcode(xmlch_AreaLightDirX));
@@ -398,6 +390,14 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
               const XMLCh* xmlch_AreaLightDirZ
                     = currentElement->getAttribute(ATTR_AreaLightDirZ);
               alight->dir[2] = atof(XMLString::transcode(xmlch_AreaLightDirZ));
+
+	      const XMLCh* xmlch_AreaLightHeight
+                    = currentElement->getAttribute(ATTR_AreaLightHeight);
+              alight->height = atoi(XMLString::transcode(xmlch_AreaLightHeight));
+
+              const XMLCh* xmlch_AreaLightWidth
+                    = currentElement->getAttribute(ATTR_AreaLightWidth);
+              alight->width = atoi(XMLString::transcode(xmlch_AreaLightWidth));
 
               const XMLCh* xmlch_AreaLightGridHeight
                     = currentElement->getAttribute(ATTR_AreaLightGridHeight);
@@ -411,7 +411,17 @@ void SceneParser::readSceneFile(string& configFile, Scene *scene)
                     = currentElement->getAttribute(ATTR_AreaLightSampleDensity);
               alight->sampleDensity = atoi(XMLString::transcode(xmlch_AreaLightSampleDensity));
 
-              alight->setSamples();
+	      alight->samples = (alight->gridHeight * alight->gridWidth * alight->sampleDensity);
+
+              const XMLCh* xmlch_LightIntensity
+                    = currentElement->getAttribute(ATTR_LightIntensity);
+              alight->intensity = atof(XMLString::transcode(xmlch_LightIntensity));
+	      alight->intensity /= alight->samples;
+
+              const XMLCh* xmlch_LightDamping
+                    = currentElement->getAttribute(ATTR_LightDamping);
+              alight->damping = atof(XMLString::transcode(xmlch_LightDamping));
+
               scene->sceneLights.push_back(alight);
             }
 

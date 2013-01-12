@@ -28,8 +28,12 @@
 
 int main(int argc, char **argv) {
   std::cout << std::endl <<
-  "LIMN-Ray v1.0\n";
+  "LIMN-Ray v1.1\n";
 
+  std::cout << "Initializing ImageMagick...";
+  Magick::InitializeMagick(*argv);
+  std::cout << "OK!" << std::endl;
+  
   std::string configFile = "";
   std::string fileOut = "image_out";
 

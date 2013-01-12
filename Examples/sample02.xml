@@ -7,7 +7,7 @@
 
 <Scene>
   <RenderSettings
-    Width = "640"
+    Width = "720"
     Height = "480"
     CameraPosX = "66"
     CameraPosY = "24"

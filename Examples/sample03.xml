@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-    Document   : sample03.xml
+    Document   : sample02.xml
     Created on : April 23, 2009, 03:11 AM
     Author     : RdelCueto.
 -->
 
 <Scene>
   <RenderSettings
-    Width = "640"
+    Width = "720"
     Height = "480"
-    CameraPosX = "50"
-    CameraPosY = "25"
-    CameraPosZ = "50"
+    CameraPosX = "66"
+    CameraPosY = "24"
+    CameraPosZ = "-45"
     CameraLookAtX = "0"
-    CameraLookAtY = "0"
-    CameraLookAtZ = "0"
+    CameraLookAtY = "12"
+    CameraLookAtZ = "50"
     CameraRollAngle = "0"
     FocalLength = "80"
     FocusDistance = "85"
@@ -25,38 +25,47 @@
     Shadows = "1"
   ></RenderSettings>
   
-  <PointLight
+  
+  <AreaLight
     LightPosX = "0"
-    LightPosY = "25"
-    LightPosZ = "0"
+    LightPosY = "20"
+    LightPosZ = "50"
     LightColorR = "0.66"
     LightColorG = "0.9"
     LightColorB = "0.9"
-    LightIntensity = "0.5"
+    LightIntensity = "1"
     LightDamping = "1"
-  ></PointLight>
-   
+    AreaLightHeight = "3"
+    AreaLightWidth = "3"
+    AreaLightGridHeight = "3"
+    AreaLightGridWidth = "3"
+    AreaLightSampleDensity = "2"
+    AreaLightDirX = "0"
+    AreaLightDirY = "-1"
+    AreaLightDirZ = "0"
+  ></AreaLight>
+  
   <Sphere
-    PrimitivePosX = "0"
-    PrimitivePosY = "0"
-    PrimitivePosZ = "0"
+    PrimitivePosX = "16"
+    PrimitivePosY = "5"
+    PrimitivePosZ = "50"
     SphereRadius = "5"
-    MaterialColorR = "0.94"
-    MaterialColorG = "0.94"
-    MaterialColorB = "0.94"
+    MaterialColorR = "1.0"
+    MaterialColorG = "1.0"
+    MaterialColorB = "1.0"
     MaterialOpacy = "1.0"
     MaterialFilter = "0.0"
-    MaterialDiffuse = "0.85"
-    MaterialSpecular = "0.95"
-    MaterialSpecHardness = "64.0"
+    MaterialDiffuse = "0.05"
+    MaterialSpecular = "16.0"
+    MaterialSpecHardness = "128.0"
     MaterialAmbient = "0.0"
-    MaterialReflection = "0.66"
+    MaterialReflection = "1.0"
     MaterialInterior = "1.0"
     ></Sphere>
     
   <Plane
     PrimitivePosX = "0"
-    PrimitivePosY = "-5.01"
+    PrimitivePosY = "0"
     PrimitivePosZ = "0"
     PlaneNormalX = "0"
     PlaneNormalY = "1"
@@ -71,7 +80,7 @@
     MaterialSpecHardness = "64.0"
     MaterialAmbient = "0.0"
     MaterialReflection = "0.5"
-    MaterialInterior = "1.00"
+    MaterialInterior = "1.0"
   ></Plane>
   
 </Scene>

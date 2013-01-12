@@ -30,12 +30,11 @@
 #define LIGHT_SCALE 10000
 
 #include <fstream>
+#include <sstream>
 #include <iostream>
-#include <algorithm>
-
 #include <time.h>
 #include <omp.h>
-#include <png.h>
+#include <Magick++.h>
 
 #include "primitives.cpp"
 #include "materials.cpp"
@@ -59,11 +58,11 @@ public:
   /** String containing the output filename. */
   std::string fileOut;
   /** Width in pixels of the rendered image. */
-  size_t image_width;
+  int image_width;
   /** Height in pixels of the rendered image. */
-  size_t image_height;
+  int image_height;
   /** Rendered image resolution Width x Height. */
-  size_t res;
+  int res;
   /** Camera up vector rotation angle. */
   float cameraRollAngle;
   /** Camera position vector. */
@@ -77,7 +76,7 @@ public:
   /** Z-Buffer's zero point. */
   float focusDistance;
   /** Sqrt of the total samples per pixel. */
-  size_t sqrtSamplesPerPixel;
+  int sqrtSamplesPerPixel;
   /** Recursive maximum ray depth. */
   int secondaryRaysDepth;
   /** Enable shadows flag. (0 = disabled) */

@@ -61,32 +61,31 @@ void Scene::benchmarkScene() {
   zBufferMaxDepth = 48;
   saveZBuffer = 1;
 
-  sqrtSamplesPerPixel = 2;
-  secondaryRaysDepth = 4;
+  sqrtSamplesPerPixel = 1;
+  secondaryRaysDepth = 2;
   shadows = 1;
 
   sceneMaterials.push_back(new
-			   Material(0.94, 0.94, 0.94, 1.0, 0.0, 0.1, 0.2, 0.75, 64, 0.66, 1.0));
+      Material(0.94, 0.94, 0.94, 1.0, 0.0, 0.1, 0.2, 0.75, 128, 0.66, 1.0));
   sceneMaterials.push_back(new
-			   Material(0.1, 0.15, 0.8, 1.0, 0.0, 0.0, 0.1, 1.0, 32, 1.0, 1.0));
+      Material(0.1, 0.15, 0.8, 1.0, 0.0, 0.0, 0.1, 1.0, 64, 1.0, 1.0));
   sceneMaterials.push_back(new
-			   Material(0.99, 0.2, 0.1, 0.3, 0.7, 0.0, 0.33, 1.0, 32, 0.75, 1.2));
+      Material(0.99, 0.2, 0.1, 0.3, 0.7, 0.0, 0.33, 1.0, 64, 0.75, 1.2));
   sceneMaterials.push_back(new
-			   Material(0.2, 0.9, 0.0, 0.5, 0.5, 0.0, 0.33, 1.0, 32, 0.75, 0.98));
+      Material(0.2, 0.9, 0.0, 0.5, 0.5, 0.0, 0.33, 1.0, 64, 0.75, 0.98));
 
   sceneMaterials.push_back(new
-			   Material(0.025, 0.025, 0.025, 0.25, 0.8, 0.0, 0.05, 0.66, 128, 0.9, 1.0));
+      Material(0.025, 0.025, 0.025, 0.25, 0.8, 0.0, 0.05, 0.66, 128, 0.9, 1.0));
   sceneMaterials.push_back(new
-			   Material(0.8, 0.85, 1.0, 0.1, 0.2, 0.0, 0.15, 0.66, 64, 0.33, 1.05));
+      Material(0.8, 0.85, 1.0, 0.1, 0.2, 0.0, 0.15, 0.66, 128, 0.33, 1.05));
   sceneMaterials.push_back(new
-			   Material(0.99, 0.8, 0.45, 0.1, 0.9, 0.0, 0.66, 0.9, 16, 0.8, 1.5));
+      Material(0.99, 0.8, 0.45, 0.1, 0.9, 0.0, 0.66, 0.9, 32, 0.8, 1.5));
 
   sceneMaterials.push_back(new
-			   Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 64, 0.5, 1.0));
+      Material(0.4, 0.36, 0.25, 1.0, 0.0, 0.0, 0.5, 0.1, 128, 0.5, 1.0));
 
-
-  sceneLights.push_back(new
-			AreaLight(6, 6, 6, 6, 3, 0, 20, 0, 0, -1, 0, 0.95, 0.8, 0.6, 1, 2));
+    sceneLights.push_back(new
+        AreaLight(.01, .01, 4, 4, 4, 0, 5, 0, 0, -1, 0, 0.95, 0.9, 0.7, 1, 2));
 
   MaterialList::iterator mi = sceneMaterials.begin();
 
@@ -104,7 +103,6 @@ void Scene::benchmarkScene() {
 
   sceneObjects.push_back(new Plane(0, -5.01, 0, 0, 1, 0, *mi));
 
-  return;
 }
 
 void Scene::deleteRayArray(VisionRay **rays, int nRays) {
@@ -116,102 +114,72 @@ void Scene::deleteRayArray(VisionRay **rays, int nRays) {
 
 void Scene::outputImage(std::string imageName) {
 
-  std::string file = imageName;
+  ssize_t columns = image_width;
+  ssize_t rows = image_height;
+  
+  Magick::Image image(Magick::Geometry(columns, rows), "white");
+  image.type(Magick::TrueColorType);
+  
+  const int s = sqrtSamplesPerPixel*sqrtSamplesPerPixel;
+  int k = 0;
 
-  FILE * fp = fopen (file.append(".png").c_str(), "wb");
+  
+  Magick::PixelPacket *pixel_cache;
+  Magick::PixelPacket *pixel;
 
-  if (! fp) {
-    std::cerr << "Error: Cannot open output file!\n";
-    return;
+  pixel_cache = image.getPixels(0, 0, columns, rows);
+  
+  register float r, g, b;
+  for(int y = 0; y < image_height; y++)
+    for(int x = 0; x < image_width; x++) {
+      
+      r = renderedImage[k];
+      g = renderedImage[k+1];
+      b = renderedImage[k+2];
+        
+      if(sqrtSamplesPerPixel > 1) {
+        r /= s;
+        g /= s;
+        b /= s;
+      }
+
+      r = r > 1 ? 1 : r < 0 ? 0 : r;
+      g = g > 1 ? 1 : g < 0 ? 0 : g;
+      b = b > 1 ? 1 : b < 0 ? 0 : b;
+
+      pixel = pixel_cache+(image_height - y - 1)*columns+x;
+      *pixel = Magick::ColorRGB(r, g, b);
+      k+=3;
+    }
+
+  image.syncPixels();
+  std::stringstream render_filename;
+  render_filename << "png32:" << imageName << ".png";
+  image.write(render_filename.str());
+
+  if(saveZBuffer) {
+    Magick::Image zbuffer_image(Magick::Geometry(columns, rows), "black");
+    pixel_cache = zbuffer_image.getPixels(0, 0, columns, rows);
+
+    k = 0;
+
+    register float z;
+    for(int y = 0; y < image_height; y++) {
+      for(int x = 0; x < image_width; x++) {
+
+        z = zBuffer[k];
+        z = z > 1 ? 1 : z < 0 ? 0 : z;
+        pixel = pixel_cache+(image_height - y - 1)*columns+x;
+        *pixel = Magick::ColorGray(z);
+        k++;
+      }
+    }
+    
+    zbuffer_image.syncPixels();
+    std::stringstream zbuffer_filename;
+    zbuffer_filename << "png32:" << imageName << "_zbuffer.png";
+    zbuffer_image.write(zbuffer_filename.str());
   }
-
-  png_structp png_ptr =
-    png_create_write_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-
-  if (!png_ptr)
-    {
-      fclose (fp);
-      std::cerr << "Error: Cannot create PNG struct!\n";
-      return;
-    }
-
-  png_infop info_ptr = png_create_info_struct(png_ptr);
-
-  if (!info_ptr)
-    {
-      fclose (fp);
-      png_destroy_write_struct(&png_ptr,
-			       (png_infopp)NULL);
-      std::cerr << "Error: Cannot create PNG info!\n";
-    }
-
-  if (setjmp(png_ptr->jmpbuf))
-    {
-      /* If we get here, we had a problem reading the file */
-      fclose(fp);
-      png_destroy_write_struct(&png_ptr,
-			       (png_infopp)NULL);
-      return;
-    }
-
-  png_init_io(png_ptr, fp);
-
-  if (setjmp (png_jmpbuf (png_ptr)))
-    {
-      fclose(fp);
-      png_destroy_write_struct(&png_ptr,
-			       (png_infopp)NULL);
-      return;
-    }
-
-  png_set_IHDR(png_ptr,
-  	       info_ptr,
-  	       image_width,
-  	       image_height,
-  	       8,
-  	       PNG_COLOR_TYPE_RGB,
-  	       PNG_INTERLACE_NONE,
-  	       PNG_COMPRESSION_TYPE_BASE,
-  	       PNG_FILTER_TYPE_BASE);
-
-
-  png_write_info(png_ptr, info_ptr);
-
-  png_byte ** row_pointers =
-    (png_byte **) malloc (sizeof (png_byte*) * image_height );
-
-  const float s = sqrtSamplesPerPixel == 1 ?
-    1.0f : 1.0f / ( sqrtSamplesPerPixel*sqrtSamplesPerPixel );
-
-  for ( unsigned int y = 0; y < image_height; ++y )
-    {
-      png_byte * row =
-  	(png_byte *) malloc (sizeof (png_byte) * image_width * 3);
-
-      row_pointers[image_height - 1 - y] = row;
-      for ( unsigned int x = 0; x < image_width; ++x )
-  	{
-  	  size_t pixel_idx = ( y * image_width + x ) * 3;
-
-	  for ( unsigned int p = 0; p < 3; p++ )
-	    {
-	      const float a = renderedImage[ pixel_idx++ ] * s;
-	      const float b = std::max(0.0f, std::min(1.0f, a));
-	      *row++ = floor(b == 1.0 ? 255 : b * 256 );
-	    }
-  	}
-    }
-
-  png_write_image(png_ptr, row_pointers);
-
-  for ( unsigned int y = 0; y < image_height; ++y )
-    free ( row_pointers [ y ] );
-  free ( row_pointers );
-
-  png_write_end(png_ptr, info_ptr);
-  png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-
-  fclose (fp);
 }
 
 int Scene::raytrace(VisionRay **rays, int nRays) {
@@ -265,11 +233,11 @@ void Scene::render() {
   renderedImage = new float[res*3];
   zBuffer = new float[res];
   // Initialize Rendered Image Array
-  for(unsigned int i = 0; i < res*3; i++)
+  for(register int i = 0; i < res*3; i++)
     renderedImage[i] = 0.0;
 
   // Initialize zBufferArray
-  for(unsigned int i = 0; i < res; i++)
+  for(register int i = 0; i < res; i++)
     zBuffer[i] = -INF_LIMIT;
 
   // Projection Plane Pixel Grid
@@ -295,10 +263,10 @@ void Scene::render() {
   std::flush(std::cout);
 
   VisionRay **rays;
-  unsigned int x, y;
+  int x, y;
 
   // Rows
-#pragma omp parallel for schedule(runtime) default(shared)	\
+  #pragma omp parallel for schedule(runtime) default(shared) \
   private(x, y, rays)
   for(y = 0; y < image_height; y++) {
     int k, nRays, nSecRays, currDepth, zbufferPixel, imagePixel;
@@ -322,11 +290,11 @@ void Scene::render() {
       // Multisampling
       if(sqrtSamplesPerPixel > 1) {
         ysDelta = sDelta - sOffset;
-        for(unsigned int i = 0; i < sqrtSamplesPerPixel; i++) {
+        for(int i = 0; i < sqrtSamplesPerPixel; i++) {
           xsDelta = sDelta - sOffset;
-          for(unsigned int j = 0; j < sqrtSamplesPerPixel; j++) {
+          for(int j = 0; j < sqrtSamplesPerPixel; j++) {
             rays[k] = new VisionRay(
-				    renderedImage+imagePixel, zBuffer+zbufferPixel, cameraPos);
+                renderedImage+imagePixel, zBuffer+zbufferPixel, cameraPos);
             lookAtRay[0] = xDelta + xsDelta;
             lookAtRay[1] = yDelta + ysDelta;
             lookAtRay[2] = focalLength;
@@ -341,7 +309,7 @@ void Scene::render() {
       // No Multisampling
       else {
         rays[k] = new VisionRay(
-				renderedImage+imagePixel, zBuffer+zbufferPixel, cameraPos);
+            renderedImage+imagePixel, zBuffer+zbufferPixel, cameraPos);
         lookAtRay[0] = xDelta;
         lookAtRay[1] = yDelta;
         lookAtRay[2] = focalLength;
@@ -386,7 +354,7 @@ void Scene::render() {
     }
     yDelta += delta;
 
-#pragma omp critical
+    #pragma omp critical
     {
       p = y*100/image_height;
       if(p > oldp) {
@@ -412,7 +380,7 @@ void Scene::render() {
 
   // Process Z-Buffer
   if(saveZBuffer) {
-    for(unsigned int i = 0; i < res; i++) {
+    for(register int i = 0; i < res; i++) {
       if(zBuffer[i] != -std::numeric_limits<float>::infinity()) {
         zBuffer[i] = -fabs(focusDistance - zBuffer[i]);
         zBuffer[i] /= zBufferMaxDepth;
@@ -518,7 +486,9 @@ int Scene::shadeRayIntersection(VisionRay *r) {
 
       int currSample = 0;
       lightSource = *i;
-      lSamples = lightSource->getSamples();
+
+      #pragma omp critical
+      {lSamples = lightSource->getSamples();}
 
       blasSubstract(intersectionPoint, lightSource->pos, lPos);
       blasVeryFastNormalize(lPos);
@@ -544,7 +514,7 @@ int Scene::shadeRayIntersection(VisionRay *r) {
             }
             else break;
           } while(shadowRay->intersectionT != INF_LIMIT
-		  && shadowLight > COLOR_EPS);
+              && shadowLight > COLOR_EPS);
         }
 
         if(shadowLight > COLOR_EPS) {
@@ -576,16 +546,16 @@ int Scene::shadeRayIntersection(VisionRay *r) {
           else phongS = 0;
 
           tmpPixel[0] += lightSource->color[0] * lightSource->intensity *
-	    (pixelBaseColor[0] * (phongD + phongS)) * shadowRay->weight[0];
+              ((pixelBaseColor[0] * phongD) + phongS) * shadowRay->weight[0];
           tmpPixel[1] += lightSource->color[1] * lightSource->intensity *
-	    (pixelBaseColor[1] * (phongD + phongS)) * shadowRay->weight[1];
+              ((pixelBaseColor[1] * phongD) + phongS) * shadowRay->weight[1];
           tmpPixel[2] += lightSource->color[2] * lightSource->intensity *
-	    (pixelBaseColor[2] * (phongD + phongS)) * shadowRay->weight[2];
+              ((pixelBaseColor[2] * phongD) + phongS) * shadowRay->weight[2];
         }
         currSample++;
         delete shadowRay;
       }
-#pragma omp critical
+      #pragma omp critical
       {
         if(saveZBuffer && r->zBufferPixel != NULL) r->zBufferPixel[0] = r->sumTs;
         r->pixel[0] += r->weight[0] *
