@@ -8,16 +8,6 @@ LIMN-Ray is a raytracer written in C++, which started as a programming project f
 
 LIMN-Ray implements the basic ray tracing algorithm without using recursion, in order to exploit parallelism. At the moment LIMN-Ray uses the OpenMP API to distribute the work between threads by interleaving rows of pixels.
 
------------------------------
- Downloading the Source Code
------------------------------
-
-You can get LIMN-Ray v1.0 source code archive at the download section or in the SVN repository @ Google Code.
-
-SVN Checkout command:
-
-$ svn checkout http://limn-ray.googlecode.com/svn/trunk/ limn-ray
-
 ------------------------
  Compiling instructions
 ------------------------
@@ -56,11 +46,10 @@ By typing the '-o' argument and appending a file name, FILENAME? would be the pr
 
 This is an example for rendering one of the sample scenes provided with the source code:
 
-$ ./limn-ray -f sample01.xml -o sample01 -v -t 1
+$ ./limn-ray -f sample01.xml -o sample01 -v
 
 With this command, we have specified LIMN-Ray to:
 
 * Render the scene described in 'sample01.xml'.
 * To save the result render into the 'sample01.png' image file.
 * Enabled verbose to show a brief description of the scene.
-* Forced LIMN-Ray to use only one processing thread.

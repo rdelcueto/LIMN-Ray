@@ -25,6 +25,7 @@
 
 Scene::Scene() {
 
+  num_threads = omp_get_max_threads();
   fileOut = "";
   image_width = 1;
   image_height = 1;
@@ -265,9 +266,10 @@ void Scene::render() {
   VisionRay **rays;
   int x, y;
 
+  const int concurrent_rendering_threads = this->num_threads;
+  
   // Rows
-  #pragma omp parallel for schedule(runtime) default(shared) \
-  private(x, y, rays)
+#pragma omp parallel for schedule(static,1) default(shared) private(x, y, rays) num_threads(concurrent_rendering_threads)
   for(y = 0; y < image_height; y++) {
     int k, nRays, nSecRays, currDepth, zbufferPixel, imagePixel;
     nRays = rowLength;
@@ -355,7 +357,7 @@ void Scene::render() {
     yDelta += delta;
 
     #pragma omp critical
-    {
+    { 
       p = y*100/image_height;
       if(p > oldp) {
         std::cout << "\r" << "Completed: " << p << "%";
@@ -488,8 +490,10 @@ int Scene::shadeRayIntersection(VisionRay *r) {
       lightSource = *i;
 
       #pragma omp critical
-      {lSamples = lightSource->getSamples();}
-
+      {
+        lSamples = lightSource->getSamples();
+      }
+      
       blasSubstract(intersectionPoint, lightSource->pos, lPos);
       blasVeryFastNormalize(lPos);
 
@@ -555,16 +559,17 @@ int Scene::shadeRayIntersection(VisionRay *r) {
         currSample++;
         delete shadowRay;
       }
-      #pragma omp critical
-      {
-        if(saveZBuffer && r->zBufferPixel != NULL) r->zBufferPixel[0] = r->sumTs;
-        r->pixel[0] += r->weight[0] *
-          (pixelBaseColor[0] * m->ambient + tmpPixel[0]);
-        r->pixel[1] += r->weight[1] *
-          (pixelBaseColor[1] * m->ambient + tmpPixel[1]);
-        r->pixel[2] += r->weight[2] *
-          (pixelBaseColor[2] * m->ambient + tmpPixel[2]);
-      }
+
+      if(saveZBuffer && r->zBufferPixel != NULL)
+        r->zBufferPixel[0] = r->sumTs;
+      
+      r->pixel[0] += r->weight[0] *
+                     (pixelBaseColor[0] * m->ambient + tmpPixel[0]);
+      r->pixel[1] += r->weight[1] *
+                     (pixelBaseColor[1] * m->ambient + tmpPixel[1]);
+      r->pixel[2] += r->weight[2] *
+                     (pixelBaseColor[2] * m->ambient + tmpPixel[2]);
+      
     }
     return secRays;
   }

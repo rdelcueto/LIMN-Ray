@@ -55,6 +55,8 @@ class Scene  {
 
 public:
 
+  /** Number of Threads. */
+  int num_threads;
   /** String containing the output filename. */
   std::string fileOut;
   /** Width in pixels of the rendered image. */

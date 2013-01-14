@@ -46,7 +46,8 @@ int main(int argc, char **argv) {
   for(int i = 1; i < argc; i++) {
     if(strcmp(argv[i], "-t") == 0) {
       int threads = atoi(argv[i+1]);
-      omp_set_num_threads(threads);
+      if(threads > 0 && threads < omp_get_max_threads())
+        scene->num_threads = threads;
       i++;
     }
     if(strcmp(argv[i], "-f") == 0) {
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
       std::cout << "Opening scene file: " << configFile << std::endl;
     sceneConfig->readSceneFile(configFile, scene);
   }
-
+  
   delete sceneConfig;
   scene->fileOut = fileOut;
 
